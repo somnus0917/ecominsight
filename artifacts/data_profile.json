@@ -1,0 +1,812 @@
+{
+  "schema_version": "0.1.0",
+  "generated_on": "2026-07-27",
+  "phase": "phase_0_read_only_audit",
+  "audit_scope": {
+    "requested_source": "/Users/somnus/Documents/luopanhacker/downloads/luopan-server-snapshot-20260727/current",
+    "requested_source_exists": false,
+    "audited_source": "../luopan-server-snapshot-20260727/current",
+    "authoritative_database": "state/luopan.db",
+    "secondary_database": "state/metrics.db",
+    "read_only": true,
+    "excluded_without_content_read": [
+      "session/**",
+      "config/**",
+      "logs/**",
+      "**/*storage_state*",
+      "**/*login*.png",
+      "**/*cookie*",
+      "**/*token*",
+      "**/*credential*",
+      "state/luopan.db:sessions",
+      "state/luopan.db:users",
+      "state/luopan.db:app_kv.value_json"
+    ]
+  },
+  "file_inventory": [
+    {
+      "category": "daily_operations",
+      "path_pattern": "output/daily/YYYY-MM-DD/compass_daily_*.{json,csv}",
+      "files": 110,
+      "formats": {
+        "json": 55,
+        "csv": 55
+      },
+      "directory_dates": 43,
+      "directory_date_range": [
+        "2026-06-11",
+        "2026-07-26"
+      ],
+      "missing_directory_dates_inside_range": [
+        "2026-06-12",
+        "2026-06-13",
+        "2026-06-16"
+      ],
+      "notes": "JSON and CSV are paired representations of 55 captures, not 110 independent datasets."
+    },
+    {
+      "category": "channel_raw_responses",
+      "path_pattern": "output/channel/YYYY-MM-DD/compass_channel_*.json",
+      "files": 7,
+      "formats": {
+        "json": 7
+      },
+      "directory_date_range": [
+        "2026-07-19",
+        "2026-07-26"
+      ],
+      "missing_directory_dates_inside_range": [
+        "2026-07-25"
+      ],
+      "notes": "Use parsed SQLite tables for analysis; raw files include response endpoint metadata."
+    },
+    {
+      "category": "inventory",
+      "path_pattern": "output/inventory/{inventory_snapshot.json,history/YYYY-MM-DD.json}",
+      "files": 12,
+      "formats": {
+        "json": 12
+      },
+      "history_snapshots": 11,
+      "history_date_range": [
+        "2026-07-16",
+        "2026-07-27"
+      ],
+      "missing_history_dates_inside_range": [
+        "2026-07-19"
+      ],
+      "notes": "inventory_snapshot.json is byte-identical to history/2026-07-27.json and is not an additional time point."
+    },
+    {
+      "category": "external_orders_daily",
+      "path_pattern": "output/external_orders/orders_daily.json",
+      "files": 1,
+      "formats": {
+        "json": 1
+      },
+      "notes": "Import ledger and preview files exist but were not used as analytical sources."
+    },
+    {
+      "category": "orders",
+      "path_pattern": "output/orders/**/douyin_orders_*.{csv,json}",
+      "authoritative_csv_files": 3,
+      "authoritative_json_files": 3,
+      "authoritative_table_rows_json_files": 3,
+      "test_or_duplicate_csv_files": 4,
+      "test_or_duplicate_json_files": 8,
+      "task_status_json_files_excluded": 10,
+      "sensitive_browser_state_files_excluded": 1,
+      "notes": "Only CSV files under the two non-test date directories are authoritative. All order paths containing shop names are redacted in deliverables."
+    },
+    {
+      "category": "settlement",
+      "path_pattern": "output/settlement/upload_*.csv",
+      "files": 4,
+      "formats": {
+        "csv": 4
+      },
+      "notes": "shops.json exists but contains business identity metadata and was not read."
+    },
+    {
+      "category": "sqlite",
+      "path_pattern": "state/*.db",
+      "files": 2,
+      "formats": {
+        "db": 2
+      }
+    },
+    {
+      "category": "excel",
+      "path_pattern": "**/*.{xlsx,xls}",
+      "files": 0,
+      "formats": {}
+    }
+  ],
+  "sqlite": {
+    "luopan.db": {
+      "size_bytes": 1994752,
+      "tables": [
+        {
+          "name": "app_kv",
+          "rows": 4,
+          "columns": [
+            "key TEXT PRIMARY KEY",
+            "value_json TEXT NOT NULL",
+            "updated_at TEXT NOT NULL"
+          ],
+          "classification": "operational_metadata_excluded"
+        },
+        {
+          "name": "channel_daily",
+          "rows": 23,
+          "columns": [
+            "shop_id TEXT PRIMARY KEY(1)",
+            "date TEXT PRIMARY KEY(2)",
+            "shop_name TEXT",
+            "captured_at TEXT",
+            "traffic_json TEXT",
+            "updated_at TEXT"
+          ],
+          "date_range": [
+            "2026-07-19",
+            "2026-07-26"
+          ],
+          "distinct_shops": 4,
+          "duplicate_primary_keys": 0
+        },
+        {
+          "name": "channel_product_daily",
+          "rows": 186,
+          "columns": [
+            "shop_id TEXT PRIMARY KEY(1)",
+            "date TEXT PRIMARY KEY(2)",
+            "product_id TEXT PRIMARY KEY(3)",
+            "payload_json TEXT",
+            "updated_at TEXT"
+          ],
+          "date_range": [
+            "2026-07-19",
+            "2026-07-26"
+          ],
+          "distinct_shops": 4,
+          "distinct_shop_products": 60,
+          "duplicate_primary_keys": 0
+        },
+        {
+          "name": "channel_search_daily",
+          "rows": 362,
+          "columns": [
+            "shop_id TEXT PRIMARY KEY(1)",
+            "date TEXT PRIMARY KEY(2)",
+            "kind TEXT PRIMARY KEY(3)",
+            "row_key TEXT PRIMARY KEY(4)",
+            "payload_json TEXT",
+            "updated_at TEXT"
+          ],
+          "date_range": [
+            "2026-07-19",
+            "2026-07-26"
+          ],
+          "distinct_shops": 4,
+          "kind_counts": {
+            "industry_term": 115,
+            "shop_term": 115,
+            "source": 132
+          },
+          "duplicate_primary_keys": 0
+        },
+        {
+          "name": "operation_records",
+          "rows": 165,
+          "columns": [
+            "shop_id TEXT PRIMARY KEY(1)",
+            "date TEXT PRIMARY KEY(2)",
+            "shop_name TEXT",
+            "captured_at TEXT",
+            "metrics_json TEXT",
+            "content_json TEXT",
+            "trend_json TEXT",
+            "source TEXT",
+            "source_key TEXT NULL",
+            "source_label TEXT NULL",
+            "source_file TEXT",
+            "updated_at TEXT"
+          ],
+          "date_range": [
+            "2026-06-01",
+            "2026-07-26"
+          ],
+          "distinct_shops": 8,
+          "duplicate_primary_keys": 0,
+          "source_breakdown": {
+            "daily_json": {
+              "rows": 105,
+              "shops": 4,
+              "date_range": [
+                "2026-06-11",
+                "2026-07-26"
+              ]
+            },
+            "external_orders": {
+              "rows": 60,
+              "shops": 4,
+              "date_range": [
+                "2026-06-01",
+                "2026-07-13"
+              ]
+            }
+          }
+        },
+        {
+          "name": "order_import_batches",
+          "rows": 1,
+          "columns": [
+            "id TEXT PRIMARY KEY",
+            "created_at TEXT",
+            "payload_json TEXT",
+            "updated_at TEXT"
+          ],
+          "classification": "operational_import_metadata_not_profiled"
+        },
+        {
+          "name": "sessions",
+          "rows": 3,
+          "columns": [
+            "token_hash TEXT PRIMARY KEY",
+            "username TEXT",
+            "created_at INTEGER",
+            "expires_at INTEGER"
+          ],
+          "classification": "authentication_data_hard_excluded"
+        },
+        {
+          "name": "users",
+          "rows": 2,
+          "columns": [
+            "username TEXT PRIMARY KEY",
+            "password_hash TEXT",
+            "role TEXT",
+            "created_at TEXT",
+            "password_changed_at TEXT NULL"
+          ],
+          "classification": "authentication_data_hard_excluded"
+        }
+      ]
+    },
+    "metrics.db": {
+      "size_bytes": 12288,
+      "tables": [
+        {
+          "name": "metrics",
+          "rows": 0,
+          "columns": [
+            "id INTEGER PRIMARY KEY",
+            "captured_at TEXT",
+            "url TEXT",
+            "body_preview TEXT",
+            "body TEXT",
+            "shop_id TEXT",
+            "shop_name TEXT",
+            "data_date TEXT",
+            "date_type TEXT",
+            "endpoint TEXT"
+          ],
+          "classification": "empty_non_authoritative"
+        }
+      ]
+    }
+  },
+  "datasets": {
+    "shop_daily": {
+      "authoritative_source": "state/luopan.db:operation_records",
+      "grain": "shop_id x date",
+      "rows": 165,
+      "daily_platform_rows": 105,
+      "external_platform_rows": 60,
+      "daily_shop_observation_counts": [
+        11,
+        39,
+        43,
+        12
+      ],
+      "external_shop_observation_counts": [
+        36,
+        3,
+        17,
+        4
+      ],
+      "daily_internal_gap_counts": [
+        1,
+        7,
+        3,
+        8
+      ],
+      "metric_json_keys": [
+        "ad_cost_amt",
+        "deal_refund_amt_pay_time",
+        "expense_amt",
+        "income_amt",
+        "pay_amt",
+        "pay_amt_per_k_show",
+        "pay_cnt",
+        "pay_item_cnt",
+        "pay_ucnt",
+        "per_item_pay_amt",
+        "per_usr_pay_amt",
+        "platform_commission_amt",
+        "platform_subsidy_amt",
+        "product_click_cnt",
+        "product_click_pay_cnt_ratio",
+        "product_click_pay_ucnt_ratio",
+        "product_click_ucnt",
+        "product_show_click_cnt_ratio",
+        "product_show_click_ucnt_ratio",
+        "product_show_cnt",
+        "product_show_pay_cnt_ratio",
+        "product_show_pay_ucnt_ratio",
+        "product_show_ucnt",
+        "refund_amt",
+        "refund_amt_pay_time",
+        "refund_amt_rate",
+        "refund_order_cnt",
+        "refund_order_cnt_pay_time",
+        "rfndsuc_amt",
+        "service_score",
+        "settlement_amt_14d",
+        "settlement_amt_7d",
+        "settlement_amt_pay_time",
+        "talent_commission_amt",
+        "talent_subsidy_amt"
+      ],
+      "core_field_coverage_daily": {
+        "income_amt": 1.0,
+        "pay_amt": 1.0,
+        "pay_cnt": 1.0,
+        "pay_ucnt": 1.0,
+        "product_show_ucnt": 1.0,
+        "product_click_ucnt": 1.0,
+        "product_show_click_ucnt_ratio": 1.0,
+        "product_click_pay_ucnt_ratio": 1.0,
+        "service_score": 1.0,
+        "settlement_amt_pay_time": 1.0,
+        "refund_amt_rate": 0.981,
+        "platform_commission_amt": 0.9429,
+        "platform_subsidy_amt": 0.9429,
+        "pay_item_cnt": 0.781,
+        "settlement_amt_7d": 0.781,
+        "settlement_amt_14d": 0.781,
+        "ad_cost_amt": 0.7048,
+        "expense_amt": 0.7048,
+        "refund_amt_pay_time": 0.3619,
+        "refund_order_cnt_pay_time": 0.3429,
+        "refund_amt": 0.219,
+        "refund_order_cnt": 0.219
+      },
+      "metric_schema_variants_daily": 24,
+      "trend_json_nonempty_rows": 0,
+      "money_storage_unit": "fen",
+      "ratio_storage_unit": "fraction_0_to_1",
+      "raw_capture_findings": {
+        "json_result_rows": 130,
+        "distinct_shop_dates": 107,
+        "duplicate_capture_rows": 23,
+        "db_shop_dates": 105,
+        "raw_not_loaded_to_db": 2,
+        "raw_not_loaded_dates": [
+          "2026-06-05"
+        ],
+        "csv_long_rows": 3850
+      }
+    },
+    "channel_daily": {
+      "authoritative_source": "state/luopan.db:channel_daily",
+      "grain": "shop_id x date with nested channel and carrier measures",
+      "rows": 23,
+      "shop_observation_counts": [
+        6,
+        4,
+        7,
+        6
+      ],
+      "rows_by_date": {
+        "2026-07-19": 4,
+        "2026-07-20": 4,
+        "2026-07-21": 4,
+        "2026-07-22": 3,
+        "2026-07-23": 3,
+        "2026-07-24": 1,
+        "2026-07-26": 4
+      },
+      "rows_with_source_groups": 18,
+      "rows_without_source_groups": 5,
+      "source_group_names": [
+        "organic_search",
+        "paid",
+        "recommendation",
+        "short_video"
+      ],
+      "carrier_names": [
+        "all",
+        "article",
+        "live",
+        "other",
+        "product_card",
+        "short_video",
+        "talent"
+      ],
+      "money_storage_unit": "fen",
+      "ratio_storage_unit": "fraction_0_to_1"
+    },
+    "product_daily": {
+      "authoritative_source": "state/luopan.db:channel_product_daily",
+      "grain": "shop_id x date x product_id",
+      "rows": 186,
+      "distinct_shop_products": 60,
+      "date_range": [
+        "2026-07-19",
+        "2026-07-26"
+      ],
+      "payload_fields": [
+        "click_pay_rate",
+        "click_rate",
+        "click_ucnt",
+        "first_onshelf_date",
+        "pay_amt",
+        "pay_amt_change",
+        "pay_cnt",
+        "pay_ucnt",
+        "product_id",
+        "product_image",
+        "product_name",
+        "product_price",
+        "show_ucnt",
+        "show_ucnt_change"
+      ],
+      "nullable_field_counts": {
+        "click_pay_rate": 25,
+        "click_rate": 25,
+        "click_ucnt": 25,
+        "first_onshelf_date": 25,
+        "pay_amt_change": 22,
+        "pay_cnt": 25,
+        "show_ucnt_change": 2
+      },
+      "money_storage_unit": "fen",
+      "ratio_storage_unit": "fraction_0_to_1"
+    },
+    "search_daily": {
+      "authoritative_source": "state/luopan.db:channel_search_daily",
+      "grain": "shop_id x date x kind x row_key",
+      "rows": 362,
+      "date_range": [
+        "2026-07-19",
+        "2026-07-26"
+      ],
+      "kind_semantics": {
+        "industry_term": {
+          "rows": 115,
+          "expected_null_fields": [
+            "pay_amt",
+            "show_ucnt"
+          ],
+          "available_fields": [
+            "word",
+            "rank",
+            "pay_amt_change",
+            "show_ucnt_change",
+            "pay_amt_lower",
+            "pay_amt_upper",
+            "show_ucnt_lower",
+            "show_ucnt_upper"
+          ]
+        },
+        "shop_term": {
+          "rows": 115,
+          "expected_null_fields": [
+            "pay_amt_lower",
+            "pay_amt_upper",
+            "show_ucnt_lower",
+            "show_ucnt_upper"
+          ]
+        },
+        "source": {
+          "rows": 132,
+          "optional_null_counts": {
+            "pay_amt_benchmark": 3,
+            "show_ucnt_benchmark": 3,
+            "pay_amt_change": 77,
+            "show_ucnt_change": 26
+          }
+        }
+      }
+    },
+    "inventory": {
+      "authoritative_source": "output/inventory/inventory_snapshot.json and history/*.json",
+      "grain": "snapshot_date x warehouse_no x spec_no",
+      "current_snapshot_rows": 1200,
+      "history_snapshots": 11,
+      "current_counts": {
+        "warehouses": 46,
+        "brands": 8,
+        "goods": 969,
+        "specs": 969,
+        "sales_7d_rows": 104,
+        "inbound_30d_rows": 617
+      },
+      "sales_7d_date_range": [
+        "2026-07-20",
+        "2026-07-26"
+      ],
+      "inbound_30d_date_range": [
+        "2026-06-28",
+        "2026-07-25"
+      ],
+      "duplicate_inventory_keys": 0,
+      "duplicate_sales_keys": 0,
+      "duplicate_inbound_keys": 0,
+      "sales_pairs_linked_to_inventory": {
+        "matched": 50,
+        "total": 50
+      },
+      "inbound_pairs_linked_to_inventory": {
+        "matched": 401,
+        "total": 401
+      },
+      "quality_counts": {
+        "empty_spec_name": 81,
+        "negative_available_num": 28,
+        "nonpositive_available_num": 449,
+        "stock_available_lock_equation_mismatch": 112
+      }
+    },
+    "orders": {
+      "authoritative_source": "output/orders/{2026-06-15,2026-06-17}/**/douyin_orders_*.csv",
+      "grain": "one exported item/order row; observed order_no and item_order_id are each unique",
+      "rows": 612,
+      "files": 3,
+      "date_range": [
+        "2026-06-15 08:15:41",
+        "2026-06-17 23:55:37"
+      ],
+      "distinct_order_ids": 612,
+      "distinct_item_order_ids": 612,
+      "exact_sanitized_duplicates": 0,
+      "pii_presence_counts": {
+        "receiver_name_nonempty": 612,
+        "receiver_phone_nonempty": 612,
+        "receiver_address_nonempty": 612
+      },
+      "commercial_sensitive_presence_counts": {
+        "merchant_sku_code": 612,
+        "product_name": 612,
+        "sku_spec": 612,
+        "author": 172
+      },
+      "raw_columns": [
+        "order_no",
+        "order_time",
+        "header_extra",
+        "product_name",
+        "sku_spec",
+        "merchant_sku_code",
+        "author",
+        "item_order_id",
+        "product_tags",
+        "price_quantity",
+        "aftersale_status",
+        "order_status",
+        "merchant_income",
+        "receiver_name",
+        "receiver_phone",
+        "receiver_address",
+        "operations"
+      ]
+    },
+    "external_orders": {
+      "authoritative_source": "output/external_orders/orders_daily.json",
+      "grain": "shop_id x date",
+      "rows": 60,
+      "date_range": [
+        "2026-06-01",
+        "2026-07-13"
+      ],
+      "distinct_dates": 36,
+      "distinct_shops": 4,
+      "distinct_source_keys": 3,
+      "distinct_source_labels": 3,
+      "duplicate_shop_dates": 0,
+      "metrics": [
+        "income_amt",
+        "pay_amt",
+        "pay_cnt",
+        "pay_item_cnt"
+      ],
+      "money_storage_unit": "fen"
+    },
+    "settlement": {
+      "authoritative_source": "output/settlement/upload_*.csv",
+      "grain": "settlement line, not order",
+      "files": 4,
+      "physical_rows": 6202,
+      "summary_rows_to_exclude": 4,
+      "business_rows": 6198,
+      "columns": 46,
+      "date_range": [
+        "2026-06-18 04:11:35",
+        "2026-07-19 09:32:00"
+      ],
+      "distinct_settlement_days": 32,
+      "order_time_range": [
+        "2026-05-28 22:07:12",
+        "2026-07-12 16:59:25"
+      ],
+      "distinct_order_days": 40,
+      "distinct_order_ids": 1788,
+      "distinct_suborder_ids": 1788,
+      "repeated_rows_by_order_id": 4410,
+      "exact_duplicate_business_rows": 0,
+      "money_storage_unit": "yuan_decimal",
+      "important_missing_counts": {
+        "达人ID": 656,
+        "达人名称": 696,
+        "是否免佣": 4512,
+        "APP渠道": 6198,
+        "其他分成说明": 6198
+      },
+      "sign_convention_note": "Fees and settlement adjustments frequently use negative values. Sign must be interpreted with settlement type, not flagged as invalid by sign alone."
+    }
+  },
+  "linkage_matrix": [
+    {
+      "left": "channel_daily",
+      "right": "operation_records.daily_json",
+      "key": [
+        "shop_id",
+        "date"
+      ],
+      "method": "direct_id",
+      "matched": 23,
+      "total_left": 23,
+      "status": "reliable"
+    },
+    {
+      "left": "channel_product_daily",
+      "right": "channel_daily",
+      "key": [
+        "shop_id",
+        "date"
+      ],
+      "method": "direct_id",
+      "matched_parent_keys": 23,
+      "total_parent_keys": 23,
+      "status": "reliable"
+    },
+    {
+      "left": "channel_search_daily",
+      "right": "channel_daily",
+      "key": [
+        "shop_id",
+        "date"
+      ],
+      "method": "direct_id",
+      "matched_parent_keys": 23,
+      "total_parent_keys": 23,
+      "status": "reliable"
+    },
+    {
+      "left": "orders.merchant_sku_code",
+      "right": "inventory.spec_no",
+      "method": "exact_standard_code",
+      "matched_distinct_codes": 7,
+      "total_distinct_order_codes": 19,
+      "status": "partial_needs_semantic_confirmation"
+    },
+    {
+      "left": "channel_product_daily.product_id",
+      "right": "inventory.goods_no",
+      "method": "exact_id",
+      "matched": 0,
+      "total_left": 60,
+      "status": "not_linkable"
+    },
+    {
+      "left": "settlement.product_id",
+      "right": "channel_product_daily.product_id",
+      "method": "exact_id",
+      "matched": 0,
+      "total_left": 58,
+      "status": "not_linkable"
+    },
+    {
+      "left": "orders.order_no",
+      "right": "settlement.order_no",
+      "method": "ephemeral_hmac_equality",
+      "matched": 0,
+      "total_left": 612,
+      "status": "not_linkable_in_current_extract"
+    },
+    {
+      "left": "settlement.product_name",
+      "right": "channel_product_daily.product_name",
+      "method": "exact_name",
+      "matched_distinct_names": 26,
+      "total_left_distinct_names": 59,
+      "status": "non_authoritative_candidate_only"
+    }
+  ],
+  "quality_findings": [
+    {
+      "id": "DQ-001",
+      "severity": "critical",
+      "finding": "Order exports contain receiver name, phone and detailed address on all 612 authoritative rows.",
+      "risk": "Direct personal information could leak into DuckDB, logs, fixtures, Git, UI or an external model.",
+      "required_control": "Streaming sanitization before persistence; delete name/phone/address and HMAC order identifiers with an external salt."
+    },
+    {
+      "id": "DQ-002",
+      "severity": "critical",
+      "finding": "The snapshot includes authentication tables, browser session state, login images, configuration and logs.",
+      "risk": "Credential or session disclosure.",
+      "required_control": "Path denylist plus table denylist enforced before discovery; never inspect content."
+    },
+    {
+      "id": "DQ-003",
+      "severity": "high",
+      "finding": "The four Douyin shops have only 11, 39, 43 and 12 daily observations, with internal gaps.",
+      "risk": "A single 56-day calendar range overstates usable per-entity history and invalidates uniform model assumptions.",
+      "required_control": "Detector eligibility by entity/metric; preserve missing as unknown until source semantics are confirmed."
+    },
+    {
+      "id": "DQ-004",
+      "severity": "high",
+      "finding": "Channel, product and search data cover only seven captured dates; one date is missing and shop coverage drops to one row on 2026-07-24.",
+      "risk": "STL and per-product machine-learning anomaly detection are unsupported.",
+      "required_control": "Use contribution, cross-sectional and rule-based analysis first."
+    },
+    {
+      "id": "DQ-005",
+      "severity": "high",
+      "finding": "Daily metric payloads have 24 key-set variants and many optional fields.",
+      "risk": "Absent, zero and not-applicable values can be conflated.",
+      "required_control": "Retain source presence flags and metric provenance in staging."
+    },
+    {
+      "id": "DQ-006",
+      "severity": "high",
+      "finding": "SQLite amounts are stored in fen and ratios as 0-to-1 fractions, while settlement CSV amounts are yuan decimals.",
+      "risk": "Silent 100x money errors or 100x percentage errors.",
+      "required_control": "Typed normalization with explicit source_unit, canonical_unit and conversion tests."
+    },
+    {
+      "id": "DQ-007",
+      "severity": "medium",
+      "finding": "Inventory has 28 negative available quantities, 449 non-positive available quantities, 81 empty spec names and 112 rows where stock != available + lock.",
+      "risk": "Naive stockout rules can misclassify backorders or hidden allocations.",
+      "required_control": "Confirm WMS semantics and treat negative stock as a separate operational state."
+    },
+    {
+      "id": "DQ-008",
+      "severity": "high",
+      "finding": "Settlement files contain four summary rows and 6198 business rows at settlement-line grain; order identifiers repeat across lines.",
+      "risk": "Counting rows as orders or summing footer rows causes overstatement.",
+      "required_control": "Exclude rows without both identifiers and aggregate only after classifying settlement line type."
+    },
+    {
+      "id": "DQ-009",
+      "severity": "medium",
+      "finding": "Raw daily captures contain 23 duplicate capture rows and two 2026-06-05 shop-date rows not loaded into the main database.",
+      "risk": "Direct file ingestion differs from the current main-database view.",
+      "required_control": "Use luopan.db as the Phase 2 operations source and preserve a reconciliation test."
+    }
+  ],
+  "differences_from_brief": [
+    "The requested absolute source path does not exist in the current environment; an equivalent workspace snapshot was audited.",
+    "Product and search datasets are stored in luopan.db payload tables, not as separate first-class files.",
+    "There are 55 daily JSON/CSV capture pairs, 130 raw result rows, 107 distinct raw shop-dates and 105 loaded Douyin shop-dates.",
+    "External orders have three source labels but four distinct shop IDs.",
+    "Settlement has 6202 physical rows, of which 6198 are business rows after excluding one summary row per file.",
+    "The current snapshot contains no Excel files.",
+    "The latest inventory snapshot duplicates the 2026-07-27 history file and is not a twelfth independent time point.",
+    "metrics.db exists but its only table has zero rows."
+  ]
+}
