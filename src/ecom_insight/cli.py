@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+import uvicorn
 
 from ecom_insight.anomaly import AnomalyRunner
 from ecom_insight.attribution import AttributionRunner
@@ -316,6 +317,29 @@ def evaluate_reporting_command(
     typer.echo(f"Evaluation: {result.artifact_path}")
 
 
+@app.command("serve-api")
+def serve_api_command(
+    host: Annotated[
+        str,
+        typer.Option(help="API bind host"),
+    ] = "127.0.0.1",
+    port: Annotated[
+        int,
+        typer.Option(help="API bind port"),
+    ] = 8000,
+    reload: Annotated[
+        bool,
+        typer.Option(help="Reload the server when Python files change"),
+    ] = False,
+) -> None:
+    uvicorn.run(
+        "ecom_insight.api.app:app",
+        host=host,
+        port=port,
+        reload=reload,
+    )
+
+
 def build_warehouse_entrypoint() -> None:
     app(args=["build-warehouse", *sys.argv[1:]], prog_name="ecom-build-warehouse")
 
@@ -378,6 +402,13 @@ def evaluate_reporting_entrypoint() -> None:
     app(
         args=["evaluate-reporting", *sys.argv[1:]],
         prog_name="ecom-evaluate-reporting",
+    )
+
+
+def serve_api_entrypoint() -> None:
+    app(
+        args=["serve-api", *sys.argv[1:]],
+        prog_name="ecom-api",
     )
 
 
