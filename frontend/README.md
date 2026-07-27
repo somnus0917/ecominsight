@@ -1,6 +1,12 @@
-# Frontend
+# EcomInsight frontend
 
-The React/TypeScript/Vite frontend is intentionally deferred to Phase 7. No frontend code is
-introduced before the warehouse, metric definitions, anomaly records and evidence contracts are
-stable.
+React/TypeScript operations console for the local FastAPI service.
+
+```bash
+npm install
+npm run dev
+```
+
+Vite proxies `/api` to `http://127.0.0.1:8000`. Run `uv run ecom-api` from the repository root
+before starting the frontend.
 

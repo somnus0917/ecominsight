@@ -45,11 +45,16 @@ data/artifacts/
 !data/demo/**/*.json
 !tests/fixtures/synthetic/**/*.json
 !frontend/package.json
+!frontend/package-lock.json
 !frontend/tsconfig*.json
 
 # Frontend/build artifacts
 node_modules/
 frontend/dist/
+frontend/*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+.playwright-cli/
 
 # OS/editor
 .DS_Store
