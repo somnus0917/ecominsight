@@ -13,6 +13,7 @@ from ecom_insight.demo import DemoDataGenerator
 from ecom_insight.evaluation import AnomalyEvaluator, AttributionEvaluator
 from ecom_insight.logging import configure_logging
 from ecom_insight.metrics import AnalysisRunner
+from ecom_insight.retrieval import KnowledgeBuilder
 from ecom_insight.warehouse import WarehouseBuilder
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
@@ -216,6 +217,42 @@ def evaluate_attribution_command(
     typer.echo(f"Evaluation: {result.artifact_path}")
 
 
+@app.command("build-knowledge")
+def build_knowledge_command(
+    database: Annotated[
+        Path,
+        typer.Option(help="DuckDB warehouse used for local knowledge tables"),
+    ] = Path("data/processed/ecom_insight.duckdb"),
+    metrics: Annotated[
+        Path,
+        typer.Option(help="Central metric registry YAML"),
+    ] = Path("configs/metrics.yaml"),
+    rules: Annotated[
+        Path,
+        typer.Option(help="Attribution rule knowledge YAML"),
+    ] = Path("configs/attribution_rules.yaml"),
+    demo_root: Annotated[
+        Path,
+        typer.Option(help="Public controlled-case directory"),
+    ] = Path("data/demo/generated"),
+    artifact_root: Annotated[
+        Path,
+        typer.Option(help="Local directory for knowledge build summary"),
+    ] = Path("data/processed/artifacts"),
+) -> None:
+    configure_logging()
+    result = KnowledgeBuilder(
+        database_path=database,
+        metric_config_path=metrics,
+        rule_config_path=rules,
+        demo_root=demo_root,
+        artifact_root=artifact_root,
+    ).run()
+    typer.echo(f"Documents: {result.document_count}")
+    typer.echo(f"Embedding: {result.embedding_model}")
+    typer.echo(f"Summary: {result.artifact_path}")
+
+
 def build_warehouse_entrypoint() -> None:
     app(args=["build-warehouse", *sys.argv[1:]], prog_name="ecom-build-warehouse")
 
@@ -257,6 +294,13 @@ def evaluate_attribution_entrypoint() -> None:
     app(
         args=["evaluate-attribution", *sys.argv[1:]],
         prog_name="ecom-evaluate-attribution",
+    )
+
+
+def build_knowledge_entrypoint() -> None:
+    app(
+        args=["build-knowledge", *sys.argv[1:]],
+        prog_name="ecom-build-knowledge",
     )
 
 

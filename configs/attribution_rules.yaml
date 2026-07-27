@@ -1,0 +1,96 @@
+version: 1
+rules:
+  - rule_id: R001
+    cause_code: traffic_decline
+    cause: 流量下降
+    applies_to: [paid_amount, exposure_users]
+    preconditions:
+      - 支付金额或曝光人数下降
+      - 曝光人数相对基线下降至少15%
+    supporting_evidence: [paid_amount, exposure_users, natural_search_exposure, search_rank]
+    counter_evidence: [exposure_click_rate, click_conversion_rate]
+    explanation_template: 支付或曝光下降与流量指标同向，转化效率未出现更强的反向证据。
+  - rule_id: R002
+    cause_code: click_efficiency_decline
+    cause: 点击效率下降
+    applies_to: [paid_amount, exposure_click_rate]
+    preconditions:
+      - 曝光点击率相对基线下降至少15%
+    supporting_evidence: [exposure_click_rate, click_users, paid_amount, exposure_users]
+    counter_evidence: [exposure_users]
+    explanation_template: 曝光到点击率明显下降，且支付变化方向一致。
+  - rule_id: R003
+    cause_code: conversion_decline
+    cause: 成交转化效率下降
+    applies_to: [paid_amount, click_conversion_rate]
+    preconditions:
+      - 点击成交率相对基线下降至少15%
+    supporting_evidence: [click_conversion_rate, paid_users, paid_amount, exposure_click_rate]
+    counter_evidence: [exposure_click_rate]
+    explanation_template: 点击到成交率明显下降，支付变化方向一致。
+  - rule_id: R004
+    cause_code: aov_decline
+    cause: 客单价下降
+    applies_to: [paid_amount, avg_order_value]
+    preconditions:
+      - 客单价相对基线下降至少15%
+    supporting_evidence: [avg_order_value, avg_item_price, paid_amount, click_conversion_rate]
+    counter_evidence: [click_conversion_rate]
+    explanation_template: 客单价明显下降，且支付变化方向一致。
+  - rule_id: R005
+    cause_code: refund_pressure
+    cause: 退款压力上升
+    applies_to: [refund_rate, refund_rate_by_pay_time, paid_amount]
+    preconditions:
+      - 退款率相对基线上升至少20%
+    supporting_evidence: [refund_rate, refund_amount, net_paid_amount, paid_amount]
+    counter_evidence: []
+    explanation_template: 退款率明显上升，并伴随净支付或支付金额走弱。
+  - rule_id: R006
+    cause_code: ad_inefficiency
+    cause: 投放效率下降
+    applies_to: [ad_spend, paid_amount]
+    preconditions:
+      - 广告消耗相对基线上升至少20%
+      - ROAS相对基线下降至少15%
+    supporting_evidence: [ad_spend, roas, paid_amount, paid_traffic_share]
+    counter_evidence: []
+    explanation_template: 广告消耗上升但ROAS下降，支付金额未同比例增长。
+  - rule_id: R007
+    cause_code: inventory_shortage
+    cause: 主销规格库存不足
+    applies_to: [available_qty, click_conversion_rate, paid_amount]
+    preconditions:
+      - 可用库存相对基线下降至少50%
+      - 核心商品支付或店铺转化同步下降
+    supporting_evidence: [available_qty, core_product_paid_amount, click_conversion_rate]
+    counter_evidence: []
+    explanation_template: 主销规格可用库存显著下降，并与商品支付或店铺转化同步走弱。
+  - rule_id: R008
+    cause_code: commission_pressure
+    cause: 平台佣金率上升
+    applies_to: [platform_commission_rate, settlement_ratio]
+    preconditions:
+      - 平台佣金率相对基线上升至少20%
+    supporting_evidence: [platform_commission, platform_commission_rate, settlement_ratio]
+    counter_evidence: []
+    explanation_template: 平台佣金率显著上升，并对结算比例形成压力。
+  - rule_id: R009
+    cause_code: settlement_adjustment_decline
+    cause: 结算侧调整或费用变化
+    applies_to: [settlement_ratio, settlement_amount_by_pay_time]
+    preconditions:
+      - 结算比例或支付时间口径结算额相对基线下降至少15%
+    supporting_evidence: [settlement_ratio, settlement_amount, settlement_adjustment, paid_amount]
+    counter_evidence: []
+    explanation_template: 结算比例或结算金额下降，支付相对稳定时应优先核查结算侧调整。
+  - rule_id: R010
+    cause_code: overstock
+    cause: 高库存低动销
+    applies_to: [days_of_supply, available_qty]
+    preconditions:
+      - 预计可售天数相对基线上升至少50%
+    supporting_evidence: [days_of_supply, available_qty, sales_7d]
+    counter_evidence: []
+    explanation_template: 预计可售天数显著增加，并伴随库存增加或近7日销量下降。
+

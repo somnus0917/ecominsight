@@ -34,6 +34,7 @@ ecom-run-anomaly = "ecom_insight.cli:run_anomaly_entrypoint"
 ecom-evaluate-anomaly = "ecom_insight.cli:evaluate_anomaly_entrypoint"
 ecom-run-attribution = "ecom_insight.cli:run_attribution_entrypoint"
 ecom-evaluate-attribution = "ecom_insight.cli:evaluate_attribution_entrypoint"
+ecom-build-knowledge = "ecom_insight.cli:build_knowledge_entrypoint"
 
 [build-system]
 requires = ["hatchling"]
