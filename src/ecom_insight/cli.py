@@ -7,6 +7,7 @@ from typing import Annotated
 import typer
 
 from ecom_insight.anomaly import AnomalyRunner
+from ecom_insight.attribution import AttributionRunner
 from ecom_insight.config import AppSettings
 from ecom_insight.demo import DemoDataGenerator
 from ecom_insight.evaluation import AnomalyEvaluator
@@ -170,6 +171,28 @@ def evaluate_anomaly_command(
     typer.echo(f"Evaluation: {result.artifact_path}")
 
 
+@app.command("run-attribution")
+def run_attribution_command(
+    database: Annotated[
+        Path,
+        typer.Option(help="DuckDB warehouse containing Phase 4 anomaly results"),
+    ] = Path("data/processed/ecom_insight.duckdb"),
+    artifact_root: Annotated[
+        Path,
+        typer.Option(help="Local directory for attribution summaries"),
+    ] = Path("data/processed/artifacts"),
+) -> None:
+    configure_logging()
+    result = AttributionRunner(
+        database_path=database,
+        artifact_root=artifact_root,
+    ).run()
+    typer.echo(f"Events: {result.event_count}")
+    typer.echo(f"Candidates: {result.candidate_count}")
+    typer.echo(f"Evidence rows: {result.evidence_count}")
+    typer.echo(f"Summary: {result.artifact_path}")
+
+
 def build_warehouse_entrypoint() -> None:
     app(args=["build-warehouse", *sys.argv[1:]], prog_name="ecom-build-warehouse")
 
@@ -197,6 +220,13 @@ def evaluate_anomaly_entrypoint() -> None:
     app(
         args=["evaluate-anomaly", *sys.argv[1:]],
         prog_name="ecom-evaluate-anomaly",
+    )
+
+
+def run_attribution_entrypoint() -> None:
+    app(
+        args=["run-attribution", *sys.argv[1:]],
+        prog_name="ecom-run-attribution",
     )
 
 

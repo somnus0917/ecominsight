@@ -97,6 +97,6 @@ class AttributionResult(AttributionModel):
     severity: Literal["low", "medium", "high"]
     decomposition: MetricDecomposition | None
     candidates: list[AttributionCandidate] = Field(default_factory=list)
+    context_evidence: list[EvidenceItem] = Field(default_factory=list)
     missing_information: list[str] = Field(default_factory=list)
     data_origin: Literal["real", "demo"]
-

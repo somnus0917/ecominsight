@@ -15,12 +15,17 @@ from ecom_insight.attribution.models import (
     FactorContribution,
     MetricDecomposition,
 )
+from ecom_insight.attribution.rules import AttributionRuleEngine
+from ecom_insight.attribution.runner import AttributionRunner, AttributionRunResult
 
 __all__ = [
     "PAID_AMOUNT_FACTORS",
     "PAID_AMOUNT_FORMULA",
     "AttributionCandidate",
     "AttributionResult",
+    "AttributionRuleEngine",
+    "AttributionRunResult",
+    "AttributionRunner",
     "ConfidenceBreakdown",
     "EvidenceItem",
     "EvidenceStatus",
