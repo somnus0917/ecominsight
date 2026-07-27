@@ -9,6 +9,7 @@ import typer
 from ecom_insight.anomaly import AnomalyRunner
 from ecom_insight.config import AppSettings
 from ecom_insight.demo import DemoDataGenerator
+from ecom_insight.evaluation import AnomalyEvaluator
 from ecom_insight.logging import configure_logging
 from ecom_insight.metrics import AnalysisRunner
 from ecom_insight.warehouse import WarehouseBuilder
@@ -144,6 +145,31 @@ def run_anomaly_command(
     typer.echo(f"Summary: {result.artifact_path}")
 
 
+@app.command("evaluate-anomaly")
+def evaluate_anomaly_command(
+    demo_root: Annotated[
+        Path,
+        typer.Option(help="Public demo data directory with controlled anomaly labels"),
+    ] = Path("data/demo/generated"),
+    artifact_root: Annotated[
+        Path,
+        typer.Option(help="Local directory for evaluation results"),
+    ] = Path("data/processed/artifacts"),
+) -> None:
+    configure_logging()
+    result = AnomalyEvaluator(
+        demo_root=demo_root,
+        artifact_root=artifact_root,
+    ).run()
+    typer.echo(f"Cases: {result.case_count}")
+    for detector in result.detector_results:
+        typer.echo(
+            f"{detector.detector}: precision={detector.precision:.3f}, "
+            f"recall={detector.recall:.3f}, f1={detector.f1:.3f}"
+        )
+    typer.echo(f"Evaluation: {result.artifact_path}")
+
+
 def build_warehouse_entrypoint() -> None:
     app(args=["build-warehouse", *sys.argv[1:]], prog_name="ecom-build-warehouse")
 
@@ -165,6 +191,13 @@ def generate_demo_data_entrypoint() -> None:
 
 def run_anomaly_entrypoint() -> None:
     app(args=["run-anomaly", *sys.argv[1:]], prog_name="ecom-run-anomaly")
+
+
+def evaluate_anomaly_entrypoint() -> None:
+    app(
+        args=["evaluate-anomaly", *sys.argv[1:]],
+        prog_name="ecom-evaluate-anomaly",
+    )
 
 
 if __name__ == "__main__":

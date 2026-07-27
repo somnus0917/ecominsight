@@ -266,7 +266,7 @@ version
 | MAD / Robust Z-score | 至少 14 个有效观察，MAD 非 0 | 两家店优先 |
 | EWMA | 至少 14 个有效观察 | 两家店优先 |
 | STL | 规则时间序列且至少多个季节周期 | 当前默认关闭 |
-| Isolation Forest | pooled baseline，特征完整且单独评测 | Phase 4 候选 |
+| Isolation Forest | 至少 28 个历史观察，最多 42 点滚动拟合 | 已实现并单独评测 |
 | LOF / One-Class SVM | 足够样本并完成缩放/敏感度分析 | 当前不优先 |
 | 深度学习 | 长历史和可靠标签 | 当前不使用 |
 

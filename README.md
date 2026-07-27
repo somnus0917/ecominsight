@@ -13,9 +13,11 @@ not as a calculator or a source of causal claims.
 - Phase 2 complete: privacy-first adapters, Parquet staging and DuckDB warehouse.
 - Phase 3 complete: validated metric registry and shop, product, channel, search, inventory and
   financial marts.
+- Phase 4 baseline complete: fixed threshold, Rolling Z-score, Rolling MAD and Isolation Forest,
+  with real-warehouse alerts and controlled-label evaluation.
 - A fully synthetic, cross-domain 140-day demo dataset provides ten controlled anomaly scenarios
   for later detection and attribution evaluation.
-- Anomaly detection, attribution, RAG, API and frontend remain later phases.
+- Attribution, RAG, API and frontend remain later phases.
 
 ## Verified local data
 
@@ -51,6 +53,7 @@ See:
 - [Privacy and security](docs/privacy_and_security.md)
 - [Metric definitions](docs/metric_definitions.md)
 - [Phase 3 analysis](docs/phase3_analysis.md)
+- [Phase 4 experiments](docs/experiments.md)
 - [Synthetic data design](docs/synthetic_data.md)
 
 ## Privacy defaults
@@ -75,6 +78,8 @@ Set `ECOM_SOURCE_ROOT` to the snapshot's `current` directory, then:
 uv run ecom-audit-data
 uv run ecom-build-warehouse
 uv run ecom-run-analysis
+uv run ecom-run-anomaly
+uv run ecom-evaluate-anomaly
 uv run ecom-generate-demo-data
 uv run pytest
 ```

@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from ecom_insight.anomaly import AnomalyRunner
 from ecom_insight.config import AppSettings
 from ecom_insight.metrics import AnalysisRunner
 from ecom_insight.warehouse import WarehouseBuilder
@@ -42,3 +43,12 @@ def test_audited_snapshot_reconciles_phase0(tmp_path: Path) -> None:
     assert analysis.mart_counts["mart_product_summary"] == 60
     assert analysis.mart_counts["mart_inventory_health_latest"] == 1200
     assert analysis.mart_counts["mart_financial_daily"] == 32
+
+    anomaly = AnomalyRunner(
+        database_path=result.database_path,
+        artifact_root=tmp_path / "processed" / "artifacts",
+    ).run()
+
+    assert anomaly.series_count == 40
+    assert anomaly.scored_point_count > 0
+    assert anomaly.anomaly_count > 0

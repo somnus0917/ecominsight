@@ -17,11 +17,12 @@
 - Thirteen DuckDB analysis marts with Parquet exports and aggregate quality checks.
 - Deterministic fully synthetic cross-domain demo data with controlled anomaly labels,
   reconciliation checks and privacy scanning.
+- Rule, Rolling Z-score, Rolling MAD and Isolation Forest anomaly baselines with
+  history gates, real-warehouse alert publication and controlled-label evaluation.
 - Unit tests for privacy, parsing, adapters, quality and money conversion.
 
 ## Deferred by design
 
-- Phase 4 anomaly algorithms and comparison experiments.
 - Phase 5 attribution rules and evidence graph.
 - Phase 6 RAG and constrained LLM reporting.
 - Phase 7 FastAPI, React, Docker and screenshots.
