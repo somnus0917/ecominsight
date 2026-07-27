@@ -1,0 +1,13 @@
+project_name: EcomInsight
+timezone: Asia/Shanghai
+canonical_currency: CNY
+canonical_money_unit: yuan
+external_api_enabled: false
+privacy:
+  fail_closed: true
+  salt_file: data/.secrets/hmac_salt
+warehouse:
+  duckdb_file: ecom_insight.duckdb
+  parquet_dir: parquet
+  artifacts_dir: artifacts
+

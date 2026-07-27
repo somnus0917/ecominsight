@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+.uv-cache/
+.uv-python/
+dist/
+build/
+*.egg-info/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+data/.secrets/
+**/cookies*
+**/session*
+**/token*
+**/credentials*
+**/screenshots*
+**/*storage_state*
+**/*login*.png
+
+# Raw and locally processed company data
+data/raw/
+data/processed/
+data/artifacts/
+*.db
+*.sqlite
+*.duckdb
+*.xlsx
+*.xls
+*.csv
+*.parquet
+*.json
+
+# Explicitly versioned safe JSON
+!artifacts/data_profile.json
+!data/demo/**/*.json
+!tests/fixtures/synthetic/**/*.json
+!frontend/package.json
+!frontend/tsconfig*.json
+
+# Frontend/build artifacts
+node_modules/
+frontend/dist/
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/

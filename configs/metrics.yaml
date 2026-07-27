@@ -1,0 +1,73 @@
+version: 1
+canonical_currency: CNY
+canonical_money_unit: yuan
+metrics:
+  - code: paid_amount
+    name: 支付金额
+    definition: 用户实际支付的商品金额
+    source: fact_shop_daily.paid_amount
+    grain: shop_day
+    unit: CNY
+    null_policy: preserve_null
+    minimum_history: 7
+  - code: exposure_users
+    name: 商品曝光人数
+    definition: 当日看见商品的去重用户数
+    source: fact_shop_daily.exposure_users
+    grain: shop_day
+    unit: users
+    null_policy: preserve_null
+    minimum_history: 7
+  - code: exposure_click_rate
+    name: 曝光点击率
+    definition: 商品点击人数除以商品曝光人数
+    formula: click_users / nullif(exposure_users, 0)
+    source: fact_shop_daily
+    grain: shop_day
+    unit: ratio
+    null_policy: null_when_denominator_zero
+    minimum_history: 7
+  - code: click_conversion_rate
+    name: 点击成交率
+    definition: 支付人数除以商品点击人数
+    formula: paid_users / nullif(click_users, 0)
+    source: fact_shop_daily
+    grain: shop_day
+    unit: ratio
+    null_policy: null_when_denominator_zero
+    minimum_history: 7
+  - code: avg_order_value
+    name: 客单价
+    definition: 支付金额除以支付人数
+    formula: paid_amount / nullif(paid_users, 0)
+    source: fact_shop_daily
+    grain: shop_day
+    unit: CNY_per_user
+    null_policy: null_when_denominator_zero
+    minimum_history: 7
+  - code: refund_rate_by_pay_time
+    name: 退款率（支付时间）
+    definition: 按支付时间口径统计的退款金额率
+    source: fact_shop_daily.refund_rate_by_pay_time
+    grain: shop_day
+    unit: ratio
+    null_policy: preserve_null
+    minimum_history: 14
+  - code: ad_spend
+    name: 广告消耗
+    definition: 店铺被投产生的广告消耗
+    source: fact_shop_daily.ad_spend
+    grain: shop_day
+    unit: CNY
+    null_policy: preserve_null
+    minimum_history: 14
+  - code: roas
+    name: 广告投入产出比
+    definition: 支付金额除以广告消耗
+    formula: paid_amount / nullif(ad_spend, 0)
+    source: fact_shop_daily
+    grain: shop_day
+    unit: ratio
+    null_policy: null_when_denominator_zero
+    minimum_history: 14
+

@@ -1,0 +1,25 @@
+source_root: ${ECOM_SOURCE_ROOT}
+sources:
+  luopan_sqlite:
+    path: state/luopan.db
+    read_only: true
+  metrics_sqlite:
+    path: state/metrics.db
+    enabled: false
+    reason: empty_non_authoritative
+  inventory:
+    snapshot: output/inventory/inventory_snapshot.json
+    history_glob: output/inventory/history/*.json
+  orders:
+    authoritative_date_directories:
+      - output/orders/2026-06-15
+      - output/orders/2026-06-17
+    deny_path_fragments:
+      - test_
+      - storage_state
+      - session
+  external_orders:
+    path: output/external_orders/orders_daily.json
+  settlement:
+    glob: output/settlement/upload_*.csv
+

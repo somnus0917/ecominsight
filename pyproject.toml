@@ -1,0 +1,67 @@
+[project]
+name = "ecom-insight"
+version = "0.1.0"
+description = "Multi-platform e-commerce analytics, anomaly detection and evidence-based attribution system"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "duckdb>=1.3.2",
+  "polars>=1.31.0",
+  "pyarrow>=20.0.0",
+  "pydantic>=2.11.7",
+  "pydantic-settings>=2.10.1",
+  "pyyaml>=6.0.2",
+  "structlog>=25.4.0",
+  "typer>=0.16.0",
+]
+
+[dependency-groups]
+dev = [
+  "mypy>=1.16.1",
+  "pytest>=8.4.1",
+  "pytest-cov>=6.2.1",
+  "ruff>=0.12.2",
+  "types-pyyaml>=6.0.12.20250516",
+]
+
+[project.scripts]
+ecom-build-warehouse = "ecom_insight.cli:build_warehouse_entrypoint"
+ecom-audit-data = "ecom_insight.cli:audit_data_entrypoint"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ecom_insight"]
+
+[tool.pytest.ini_options]
+addopts = "-q --strict-markers --disable-warnings"
+testpaths = ["tests"]
+markers = [
+  "integration: requires the private ECOM_SOURCE_ROOT snapshot",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests", "scripts"]
+exclude = [".venv", ".uv-cache", ".uv-python", "data/processed"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF", "C4", "PIE", "PTH"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["ecom_insight"]
+exclude = ["tests/fixtures"]
+
+[[tool.mypy.overrides]]
+module = ["duckdb.*", "pyarrow.*"]
+ignore_missing_imports = true
