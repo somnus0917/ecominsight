@@ -5,10 +5,9 @@
 
 ## 1. 范围与安全边界
 
-用户指定的绝对路径
-`/Users/somnus/Documents/luopanhacker/downloads/luopan-server-snapshot-20260727/current`
-在当前环境中不存在。本次审计使用工作区内的等价快照：
-`./luopan-server-snapshot-20260727/current`。
+审计使用通过 `ECOM_SOURCE_ROOT` 配置的只读快照；当前仓库布局下对应
+`./luopan-server-snapshot-20260727/current`。报告和业务代码均不保存用户目录的绝对
+路径。
 
 以下内容仅确认存在，未读取内容：
 

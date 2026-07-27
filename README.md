@@ -19,9 +19,19 @@ not as a calculator or a source of causal claims.
   real-warehouse attribution tables and controlled-scenario evaluation.
 - Phase 6 complete: local knowledge embeddings, parameterized SQL evidence tools,
   evidence-constrained JSON reports and retrieval/report evaluation.
+- Phase 7 complete: FastAPI query service, separate human-feedback store, React/TypeScript
+  operations console, responsive anomaly detail workflow and Docker Compose deployment.
 - A fully synthetic, cross-domain 140-day demo dataset provides ten controlled anomaly scenarios
   for later detection and attribution evaluation.
-- API, human feedback workflow and frontend remain later phases.
+
+## Product preview
+
+![EcomInsight operations overview](docs/assets/ui/overview.png)
+
+The anomaly detail page keeps metric context, confirmed facts, candidate inferences, source IDs and
+human review in one auditable workflow:
+
+![Evidence-based anomaly detail](docs/assets/ui/anomaly-detail.png)
 
 ## Verified local data
 
@@ -97,6 +107,32 @@ uv run pytest
 
 The builder never modifies the source snapshot. Generated outputs are written under
 `data/processed` and ignored by Git.
+
+## Run the application
+
+Build the warehouse and Phase 3–6 results once, then start two terminals:
+
+```bash
+# Terminal 1
+uv run ecom-api
+
+# Terminal 2
+npm --prefix frontend ci
+npm --prefix frontend run dev
+```
+
+Open `http://127.0.0.1:5173`. FastAPI OpenAPI documentation is available at
+`http://127.0.0.1:8000/docs`. The frontend proxies `/api` locally, and neither service sends
+company data to an external model.
+
+For a containerized preview, keep `data/processed/ecom_insight.duckdb` on the host and run:
+
+```bash
+docker compose up --build
+```
+
+The analytics warehouse is mounted read-only. Human review is written to a separate Docker volume.
+See [Phase 7 application and deployment](docs/phase7_application.md).
 
 ## Verified Phase 2 build
 

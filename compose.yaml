@@ -1,0 +1,35 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      ECOM_API_DATABASE_PATH: /app/data/processed/ecom_insight.duckdb
+      ECOM_API_FEEDBACK_DATABASE_PATH: /app/runtime/feedback.sqlite
+    volumes:
+      - ./data/processed:/app/data/processed:ro
+      - feedback_data:/app/runtime
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  web:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "5173:8080"
+
+volumes:
+  feedback_data:

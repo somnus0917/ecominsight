@@ -437,3 +437,22 @@ Phase 2 先完成：
 5. 数据合同与幂等测试。
 
 异常检测、归因、RAG、API 和前端不在 Phase 2 混入，避免在基础数据口径未稳定时形成不可验证的展示层。
+
+## 13. Phase 7 应用交付
+
+```text
+React + TypeScript + ECharts
+          │ /api
+          ▼
+       FastAPI
+       ├─ AnalyticsRepository ── read-only ── ecom_insight.duckdb
+       └─ FeedbackStore      ── read/write ── feedback.sqlite
+```
+
+应用层不暴露通用 SQL 接口。仓库方法固定查询边界并使用参数绑定；返回值只包含脱敏实体、
+聚合指标、异常证据和已校验报告。反馈数据库与分析仓库物理隔离，任何审核操作都不会修改
+事实表、异常表或报告表。
+
+Docker Compose 中，原始快照被 `.dockerignore` 排除，DuckDB 从宿主机只读挂载，反馈
+写入独立 volume。Nginx 提供 SPA fallback 并把 `/api` 代理到 FastAPI。公开部署前还需
+加入身份认证、角色授权、TLS 和操作审计；当前配置定位为本地作品集演示。

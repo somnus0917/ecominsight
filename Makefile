@@ -1,4 +1,4 @@
-.PHONY: sync lint format typecheck test check audit warehouse analysis anomaly attribution knowledge reports evaluate evaluate-attribution evaluate-reporting demo
+.PHONY: sync lint format typecheck test check audit warehouse analysis anomaly attribution knowledge reports evaluate evaluate-attribution evaluate-reporting demo api frontend-install frontend-check frontend-build docker-up docker-down
 
 sync:
 	uv sync --all-groups
@@ -50,3 +50,21 @@ evaluate-reporting:
 
 demo:
 	uv run ecom-generate-demo-data
+
+api:
+	uv run ecom-api
+
+frontend-install:
+	npm --prefix frontend ci
+
+frontend-check:
+	npm --prefix frontend run check
+
+frontend-build:
+	npm --prefix frontend run build
+
+docker-up:
+	docker compose up --build
+
+docker-down:
+	docker compose down

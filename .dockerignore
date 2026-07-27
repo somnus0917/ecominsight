@@ -1,0 +1,14 @@
+.git
+.jj
+.venv
+.uv-cache
+.uv-python
+.playwright-cli
+__pycache__
+*.pyc
+.env
+data/processed
+luopan-server-snapshot-20260727
+frontend/node_modules
+frontend/dist
+docs/assets/ui

@@ -3,7 +3,7 @@
 ## 技术结论
 
 Phase 6 已建立“SQL 取事实、本地检索取案例、受约束生成器组织报告”的完整离线链路。
-真实仓库运行生成 277 份异常报告和 1,898 条声明，277 份全部通过证据引用校验，
+真实仓库运行生成 277 份异常报告和 1,896 条声明，277 份全部通过证据引用校验，
 Unsupported Claim Count 为 0。
 
 知识索引包含 52 篇文档：
@@ -16,7 +16,7 @@ Unsupported Claim Count 为 0。
 | 已审核真实案例 | 0 | 当前尚无人工确认记录 |
 
 结构化金额和店铺日报不进入向量索引。自动生成的 308 个真实归因候选也不会在未经人工
-确认时成为历史知识。
+确认时成为历史知识。方向一致性修复后的真实候选数为 306。
 
 ## 本地 Embedding 与检索
 
@@ -105,13 +105,13 @@ generator
 | 指标 | 结果 |
 |---|---:|
 | 报告数 | 277 |
-| 声明数 | 1,898 |
+| 声明数 | 1,896 |
 | 验证通过报告 | 277 |
 | Unsupported Claim Count | 0 |
 | 每份报告检索文档数 | 5 |
 
 这表示引用完整性和确定性因果措辞约束通过，不表示所有归因候选都经过业务人员确认。
-其中 149 个候选仍保持 `insufficient_data`。
+其中 159 个候选仍保持 `insufficient_data`。
 
 ## 架构变体对比
 
@@ -174,4 +174,3 @@ data/processed/artifacts/phase6_knowledge_summary.json
 data/processed/artifacts/phase6_report_summary.json
 data/processed/artifacts/reporting_evaluation.json
 ```
-
