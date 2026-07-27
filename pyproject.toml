@@ -11,6 +11,7 @@ dependencies = [
   "pydantic>=2.11.7",
   "pydantic-settings>=2.10.1",
   "pyyaml>=6.0.2",
+  "scikit-learn>=1.7.1",
   "structlog>=25.4.0",
   "typer>=0.16.0",
 ]
@@ -29,6 +30,7 @@ ecom-build-warehouse = "ecom_insight.cli:build_warehouse_entrypoint"
 ecom-audit-data = "ecom_insight.cli:audit_data_entrypoint"
 ecom-run-analysis = "ecom_insight.cli:run_analysis_entrypoint"
 ecom-generate-demo-data = "ecom_insight.cli:generate_demo_data_entrypoint"
+ecom-run-anomaly = "ecom_insight.cli:run_anomaly_entrypoint"
 
 [build-system]
 requires = ["hatchling"]
@@ -65,5 +67,5 @@ packages = ["ecom_insight"]
 exclude = ["tests/fixtures"]
 
 [[tool.mypy.overrides]]
-module = ["duckdb.*", "pyarrow.*"]
+module = ["duckdb.*", "pyarrow.*", "sklearn.*"]
 ignore_missing_imports = true

@@ -6,6 +6,7 @@ from typing import Annotated
 
 import typer
 
+from ecom_insight.anomaly import AnomalyRunner
 from ecom_insight.config import AppSettings
 from ecom_insight.demo import DemoDataGenerator
 from ecom_insight.logging import configure_logging
@@ -121,6 +122,28 @@ def generate_demo_data_command(
     typer.echo(f"Manifest: {result.manifest_path}")
 
 
+@app.command("run-anomaly")
+def run_anomaly_command(
+    database: Annotated[
+        Path,
+        typer.Option(help="DuckDB warehouse containing Phase 3 marts"),
+    ] = Path("data/processed/ecom_insight.duckdb"),
+    artifact_root: Annotated[
+        Path,
+        typer.Option(help="Local directory for anomaly summaries"),
+    ] = Path("data/processed/artifacts"),
+) -> None:
+    configure_logging()
+    result = AnomalyRunner(
+        database_path=database,
+        artifact_root=artifact_root,
+    ).run()
+    typer.echo(f"Series: {result.series_count}")
+    typer.echo(f"Scored points: {result.scored_point_count}")
+    typer.echo(f"Anomalies: {result.anomaly_count}")
+    typer.echo(f"Summary: {result.artifact_path}")
+
+
 def build_warehouse_entrypoint() -> None:
     app(args=["build-warehouse", *sys.argv[1:]], prog_name="ecom-build-warehouse")
 
@@ -138,6 +161,10 @@ def generate_demo_data_entrypoint() -> None:
         args=["generate-demo-data", *sys.argv[1:]],
         prog_name="ecom-generate-demo-data",
     )
+
+
+def run_anomaly_entrypoint() -> None:
+    app(args=["run-anomaly", *sys.argv[1:]], prog_name="ecom-run-anomaly")
 
 
 if __name__ == "__main__":

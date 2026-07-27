@@ -1,4 +1,4 @@
-.PHONY: sync lint format typecheck test check audit warehouse analysis demo
+.PHONY: sync lint format typecheck test check audit warehouse analysis anomaly demo
 
 sync:
 	uv sync --all-groups
@@ -26,6 +26,9 @@ warehouse:
 
 analysis:
 	uv run ecom-run-analysis
+
+anomaly:
+	uv run ecom-run-anomaly
 
 demo:
 	uv run ecom-generate-demo-data
