@@ -13,6 +13,8 @@ not as a calculator or a source of causal claims.
 - Phase 2 complete: privacy-first adapters, Parquet staging and DuckDB warehouse.
 - Phase 3 complete: validated metric registry and shop, product, channel, search, inventory and
   financial marts.
+- A fully synthetic, cross-domain 140-day demo dataset provides ten controlled anomaly scenarios
+  for later detection and attribution evaluation.
 - Anomaly detection, attribution, RAG, API and frontend remain later phases.
 
 ## Verified local data
@@ -49,6 +51,7 @@ See:
 - [Privacy and security](docs/privacy_and_security.md)
 - [Metric definitions](docs/metric_definitions.md)
 - [Phase 3 analysis](docs/phase3_analysis.md)
+- [Synthetic data design](docs/synthetic_data.md)
 
 ## Privacy defaults
 
@@ -72,6 +75,7 @@ Set `ECOM_SOURCE_ROOT` to the snapshot's `current` directory, then:
 uv run ecom-audit-data
 uv run ecom-build-warehouse
 uv run ecom-run-analysis
+uv run ecom-generate-demo-data
 uv run pytest
 ```
 
@@ -97,6 +101,18 @@ already documented in Phase 0. Negative availability is retained rather than sil
 
 Curated money columns are `DECIMAL(18,2)` yuan. No raw receiver, phone, address, order-number,
 credential or authentication columns exist in the generated warehouse.
+
+## Synthetic evaluation data
+
+The source snapshot is never padded with invented records. Insufficient history and unavailable
+cross-domain links are handled through a separate `synthetic=true` dataset under
+`data/demo/generated`. It reconciles shop, product, channel, search, inventory and financial
+facts and carries controlled ground-truth labels.
+
+The current demo contains 12,450 records and ten verified scenarios: traffic decline, click-rate
+decline, conversion decline, average-order-value decline, refund spike, overstock, inefficient ad
+spend, core-SKU stockout, commission spike and settlement decline. Synthetic and real evaluation
+results must be reported separately.
 
 ## Known limitations
 

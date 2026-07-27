@@ -1,0 +1,139 @@
+[
+  {
+    "scenario_id": "SYN_TRAFFIC_DROP",
+    "target_metric": "exposure_users",
+    "baseline_value": 19910.071429,
+    "scenario_value": 11369.25,
+    "change_rate": -0.42897,
+    "expected_direction": "decrease",
+    "passed": true,
+    "supporting_metrics": {
+      "baseline_days": 14,
+      "scenario_days": 4,
+      "natural_search_exposure_change_rate": -0.681786,
+      "search_rank_change_rate": 1.015152
+    }
+  },
+  {
+    "scenario_id": "SYN_CTR_DROP",
+    "target_metric": "exposure_click_rate",
+    "baseline_value": 0.058451,
+    "scenario_value": 0.033129,
+    "change_rate": -0.433226,
+    "expected_direction": "decrease",
+    "passed": true,
+    "supporting_metrics": {
+      "baseline_days": 14,
+      "scenario_days": 4
+    }
+  },
+  {
+    "scenario_id": "SYN_CONVERSION_DROP",
+    "target_metric": "click_conversion_rate",
+    "baseline_value": 0.054493,
+    "scenario_value": 0.028317,
+    "change_rate": -0.480343,
+    "expected_direction": "decrease",
+    "passed": true,
+    "supporting_metrics": {
+      "baseline_days": 14,
+      "scenario_days": 4
+    }
+  },
+  {
+    "scenario_id": "SYN_AOV_DROP",
+    "target_metric": "avg_order_value",
+    "baseline_value": 422.205,
+    "scenario_value": 266.31,
+    "change_rate": -0.36924,
+    "expected_direction": "decrease",
+    "passed": true,
+    "supporting_metrics": {
+      "baseline_days": 14,
+      "scenario_days": 3
+    }
+  },
+  {
+    "scenario_id": "SYN_REFUND_SPIKE",
+    "target_metric": "refund_rate",
+    "baseline_value": 0.060825,
+    "scenario_value": 0.198096,
+    "change_rate": 2.256805,
+    "expected_direction": "increase",
+    "passed": true,
+    "supporting_metrics": {
+      "baseline_days": 14,
+      "scenario_days": 3
+    }
+  },
+  {
+    "scenario_id": "SYN_OVERSTOCK",
+    "target_metric": "days_of_supply",
+    "baseline_value": 17.538571,
+    "scenario_value": 70.17,
+    "change_rate": 3.000896,
+    "expected_direction": "increase",
+    "passed": true,
+    "supporting_metrics": {
+      "baseline_days": 14,
+      "scenario_days": 4
+    }
+  },
+  {
+    "scenario_id": "SYN_AD_WASTE",
+    "target_metric": "ad_spend",
+    "baseline_value": 1465.040714,
+    "scenario_value": 3208.87,
+    "change_rate": 1.190294,
+    "expected_direction": "increase",
+    "passed": true,
+    "supporting_metrics": {
+      "baseline_days": 14,
+      "scenario_days": 4,
+      "roas_change_rate": -0.583336
+    }
+  },
+  {
+    "scenario_id": "SYN_STOCKOUT",
+    "target_metric": "available_qty",
+    "baseline_value": 588.857143,
+    "scenario_value": 0.0,
+    "change_rate": -1.0,
+    "expected_direction": "decrease",
+    "passed": true,
+    "supporting_metrics": {
+      "baseline_days": 14,
+      "scenario_days": 4,
+      "core_product_paid_amount_change_rate": -0.9165,
+      "shop_conversion_change_rate": -0.483095
+    }
+  },
+  {
+    "scenario_id": "SYN_COMMISSION_SPIKE",
+    "target_metric": "platform_commission_rate",
+    "baseline_value": 0.04,
+    "scenario_value": 0.112,
+    "change_rate": 1.8,
+    "expected_direction": "increase",
+    "passed": true,
+    "supporting_metrics": {
+      "baseline_days": 14,
+      "scenario_days": 3,
+      "settlement_ratio_change_rate": -0.08531
+    }
+  },
+  {
+    "scenario_id": "SYN_SETTLEMENT_DROP",
+    "target_metric": "settlement_ratio",
+    "baseline_value": 0.872351,
+    "scenario_value": 0.590806,
+    "change_rate": -0.322743,
+    "expected_direction": "decrease",
+    "passed": true,
+    "supporting_metrics": {
+      "baseline_days": 14,
+      "scenario_days": 3,
+      "paid_amount_change_rate": 0.020988
+    }
+  }
+]

@@ -1,0 +1,64 @@
+{
+  "schema_version": "1",
+  "dataset_version": "demo-v1",
+  "synthetic": true,
+  "data_origin": "fully_synthetic",
+  "contains_real_records": false,
+  "contains_direct_identifiers": false,
+  "currency": "CNY",
+  "amount_unit": "yuan",
+  "rate_unit": "decimal_0_to_1",
+  "seed": 20260727,
+  "date_range": {
+    "start": "2025-01-06",
+    "end": "2025-05-25",
+    "days": 140
+  },
+  "row_counts": {
+    "shop_daily": 560,
+    "product_daily": 3140,
+    "channel_daily": 2800,
+    "search_term_daily": 2240,
+    "inventory_daily": 3140,
+    "financial_daily": 560,
+    "anomaly_labels": 10
+  },
+  "scenario_count": 10,
+  "scenario_ids": [
+    "SYN_TRAFFIC_DROP",
+    "SYN_CTR_DROP",
+    "SYN_CONVERSION_DROP",
+    "SYN_AOV_DROP",
+    "SYN_REFUND_SPIKE",
+    "SYN_OVERSTOCK",
+    "SYN_AD_WASTE",
+    "SYN_STOCKOUT",
+    "SYN_COMMISSION_SPIKE",
+    "SYN_SETTLEMENT_DROP"
+  ],
+  "scenario_verification": {
+    "passed": 10,
+    "failed": 0
+  },
+  "reference_profile": {
+    "used": true,
+    "source": "local_sanitized_phase2_warehouse",
+    "usage": "bounded non-identifying rate medians only",
+    "fields": [
+      "exposure_click_rate_users",
+      "click_conversion_rate_users",
+      "refund_rate_by_pay_time",
+      "ad_spend_to_paid_amount_ratio",
+      "merchant_experience_score"
+    ],
+    "real_amounts_copied": false,
+    "real_entity_ids_copied": false
+  },
+  "generation_policy": {
+    "bitwise_reproducible_for_same_config_and_reference_profile": true,
+    "missing_values_are_not_implicitly_zero_filled": true,
+    "cross_domain_totals_are_reconciled": true,
+    "controlled_anomalies_have_ground_truth_labels": true,
+    "evaluation_must_report_real_and_synthetic_results_separately": true
+  }
+}

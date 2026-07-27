@@ -7,6 +7,7 @@ from typing import Annotated
 import typer
 
 from ecom_insight.config import AppSettings
+from ecom_insight.demo import DemoDataGenerator
 from ecom_insight.logging import configure_logging
 from ecom_insight.metrics import AnalysisRunner
 from ecom_insight.warehouse import WarehouseBuilder
@@ -88,6 +89,38 @@ def run_analysis_command(
     typer.echo(f"Marts: {len(result.mart_counts)}")
 
 
+@app.command("generate-demo-data")
+def generate_demo_data_command(
+    config: Annotated[
+        Path,
+        typer.Option(help="Synthetic dataset and controlled anomaly scenario config"),
+    ] = Path("configs/demo_scenarios.yaml"),
+    output_root: Annotated[
+        Path,
+        typer.Option(help="Public, fully synthetic JSON output directory"),
+    ] = Path("data/demo/generated"),
+    reference_database: Annotated[
+        Path | None,
+        typer.Option(
+            help=(
+                "Optional sanitized Phase 2 DuckDB; only bounded rate medians are read. "
+                "No real rows or amounts are copied"
+            )
+        ),
+    ] = Path("data/processed/ecom_insight.duckdb"),
+) -> None:
+    configure_logging()
+    result = DemoDataGenerator(
+        config_path=config,
+        output_root=output_root,
+        reference_database=reference_database,
+    ).generate()
+    typer.echo(f"Synthetic rows: {sum(result.row_counts.values())}")
+    typer.echo(f"Scenarios: {result.scenario_count}")
+    typer.echo(f"All scenarios verified: {result.all_scenarios_verified}")
+    typer.echo(f"Manifest: {result.manifest_path}")
+
+
 def build_warehouse_entrypoint() -> None:
     app(args=["build-warehouse", *sys.argv[1:]], prog_name="ecom-build-warehouse")
 
@@ -98,6 +131,13 @@ def audit_data_entrypoint() -> None:
 
 def run_analysis_entrypoint() -> None:
     app(args=["run-analysis", *sys.argv[1:]], prog_name="ecom-run-analysis")
+
+
+def generate_demo_data_entrypoint() -> None:
+    app(
+        args=["generate-demo-data", *sys.argv[1:]],
+        prog_name="ecom-generate-demo-data",
+    )
 
 
 if __name__ == "__main__":

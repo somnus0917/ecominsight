@@ -22,6 +22,7 @@ flowchart LR
         SETTLE["结算 CSV"]
         DENY["Session / Auth / Config / Logs"]
     end
+    SYN["独立合成数据生成器<br/>受控异常 + ground truth"]
 
     GATE["源发现安全闸门<br/>路径 allowlist + denylist"]
     ADAPTER["独立源适配器<br/>schema / grain / unit"]
@@ -44,6 +45,7 @@ flowchart LR
     ORDER --> GATE
     SETTLE --> GATE
     DENY -. "硬拒绝" .-> GATE
+    SYN -->|"仅演示/评测，synthetic=true"| DQ
     GATE --> ADAPTER
     ADAPTER --> PRIVACY
     PRIVACY --> STAGE
@@ -88,6 +90,10 @@ flowchart LR
 ```
 
 HMAC 盐只从环境变量或本机密钥存储读取，不写入配置样例、日志或 Git。公开演示数据从合成生成器产生，不从“脱敏后的真实订单”直接导出。
+
+合成数据和真实数据使用不同目录及 lineage。合成层可参考脱敏仓库中的有界比例中位数，
+但不得复制真实行、金额、日期或实体 ID；检测和归因评测必须分别报告真实数据结果与
+合成 ground truth 结果。
 
 ### Zone 2：分析区
 

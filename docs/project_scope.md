@@ -15,6 +15,8 @@
 - Repeatable Phase 3 analysis pipeline covering shops, products, channels, search,
   inventory and settlement finance.
 - Thirteen DuckDB analysis marts with Parquet exports and aggregate quality checks.
+- Deterministic fully synthetic cross-domain demo data with controlled anomaly labels,
+  reconciliation checks and privacy scanning.
 - Unit tests for privacy, parsing, adapters, quality and money conversion.
 
 ## Deferred by design

@@ -1,0 +1,144 @@
+schema_version: "1"
+dataset_version: "demo-v1"
+synthetic: true
+seed: 20260727
+start_date: 2025-01-06
+days: 140
+products_per_shop: 6
+search_terms_per_shop: 4
+shops:
+  - shop_id: Shop_A
+    platform: douyin
+    volume_factor: 0.85
+  - shop_id: Shop_B
+    platform: douyin
+    volume_factor: 1.00
+  - shop_id: Shop_C
+    platform: douyin
+    volume_factor: 1.18
+  - shop_id: Shop_D
+    platform: douyin
+    volume_factor: 1.35
+scenarios:
+  - scenario_id: SYN_TRAFFIC_DROP
+    scenario_type: traffic_drop
+    shop_id: Shop_A
+    start_day: 45
+    duration_days: 4
+    magnitude: 0.45
+    target_metric: exposure_users
+    expected_direction: decrease
+    expected_evidence:
+      - exposure_users
+      - natural_search_exposure
+      - search_rank
+  - scenario_id: SYN_CTR_DROP
+    scenario_type: click_rate_drop
+    shop_id: Shop_B
+    start_day: 57
+    duration_days: 4
+    magnitude: 0.42
+    target_metric: exposure_click_rate
+    expected_direction: decrease
+    expected_evidence:
+      - exposure_click_rate
+      - click_users
+      - paid_amount
+  - scenario_id: SYN_CONVERSION_DROP
+    scenario_type: conversion_drop
+    shop_id: Shop_C
+    start_day: 69
+    duration_days: 4
+    magnitude: 0.48
+    target_metric: click_conversion_rate
+    expected_direction: decrease
+    expected_evidence:
+      - click_conversion_rate
+      - paid_users
+      - paid_amount
+  - scenario_id: SYN_AOV_DROP
+    scenario_type: aov_drop
+    shop_id: Shop_D
+    start_day: 81
+    duration_days: 3
+    magnitude: 0.35
+    target_metric: avg_order_value
+    expected_direction: decrease
+    expected_evidence:
+      - avg_order_value
+      - avg_item_price
+      - paid_amount
+  - scenario_id: SYN_REFUND_SPIKE
+    scenario_type: refund_spike
+    shop_id: Shop_A
+    start_day: 92
+    duration_days: 3
+    magnitude: 2.50
+    target_metric: refund_rate
+    expected_direction: increase
+    expected_evidence:
+      - refund_rate
+      - refund_amount
+      - net_paid_amount
+  - scenario_id: SYN_OVERSTOCK
+    scenario_type: overstock
+    shop_id: Shop_B
+    start_day: 96
+    duration_days: 4
+    magnitude: 3.00
+    target_metric: days_of_supply
+    expected_direction: increase
+    target_product_index: 5
+    expected_evidence:
+      - available_qty
+      - sales_7d
+      - days_of_supply
+  - scenario_id: SYN_AD_WASTE
+    scenario_type: ad_waste
+    shop_id: Shop_B
+    start_day: 103
+    duration_days: 4
+    magnitude: 1.40
+    target_metric: ad_spend
+    expected_direction: increase
+    expected_evidence:
+      - ad_spend
+      - roas
+      - paid_traffic_share
+  - scenario_id: SYN_STOCKOUT
+    scenario_type: stockout
+    shop_id: Shop_C
+    start_day: 112
+    duration_days: 4
+    magnitude: 1.00
+    target_metric: available_qty
+    expected_direction: decrease
+    target_product_index: 0
+    expected_evidence:
+      - available_qty
+      - core_product_paid_amount
+      - click_conversion_rate
+  - scenario_id: SYN_COMMISSION_SPIKE
+    scenario_type: commission_spike
+    shop_id: Shop_D
+    start_day: 121
+    duration_days: 3
+    magnitude: 1.80
+    target_metric: platform_commission_rate
+    expected_direction: increase
+    expected_evidence:
+      - platform_commission
+      - platform_commission_rate
+      - settlement_ratio
+  - scenario_id: SYN_SETTLEMENT_DROP
+    scenario_type: settlement_drop
+    shop_id: Shop_A
+    start_day: 130
+    duration_days: 3
+    magnitude: 0.28
+    target_metric: settlement_ratio
+    expected_direction: decrease
+    expected_evidence:
+      - settlement_adjustment
+      - settlement_amount
+      - paid_amount

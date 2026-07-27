@@ -1,0 +1,37 @@
+{
+  "schema_version": "1",
+  "data_origin": "fully_synthetic",
+  "rate_unit": "decimal_0_to_1",
+  "amount_unit": "CNY_yuan",
+  "grain": {
+    "shop_daily": "date x shop",
+    "product_daily": "date x shop x product",
+    "channel_daily": "date x shop x channel",
+    "search_term_daily": "date x shop x search term",
+    "inventory_daily": "snapshot date x shop x product x SKU x warehouse",
+    "financial_daily": "date x shop x merchant",
+    "anomaly_labels": "controlled injected scenario"
+  },
+  "join_keys": {
+    "shop": [
+      "date",
+      "shop_id"
+    ],
+    "product_inventory": [
+      "date/snapshot_date",
+      "shop_id",
+      "product_id"
+    ],
+    "scenario": [
+      "scenario_ids/scenario_id"
+    ]
+  },
+  "important_constraints": [
+    "paid_amount approximately equals paid_users x avg_order_value",
+    "paid_users <= click_users <= exposure_users",
+    "product paid amount sums to shop paid amount",
+    "channel paid amount and exposure sum to shop totals",
+    "search term totals reconcile to natural search channel totals",
+    "settlement_amount = income_total - expense_total + settlement_adjustment"
+  ]
+}
