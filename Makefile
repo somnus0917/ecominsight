@@ -1,4 +1,4 @@
-.PHONY: sync lint format typecheck test check audit warehouse analysis anomaly attribution knowledge evaluate evaluate-attribution demo
+.PHONY: sync lint format typecheck test check audit warehouse analysis anomaly attribution knowledge reports evaluate evaluate-attribution demo
 
 sync:
 	uv sync --all-groups
@@ -35,6 +35,9 @@ attribution:
 
 knowledge:
 	uv run ecom-build-knowledge
+
+reports:
+	uv run ecom-generate-reports
 
 evaluate:
 	uv run ecom-evaluate-anomaly

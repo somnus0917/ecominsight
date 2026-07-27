@@ -13,6 +13,7 @@ from ecom_insight.demo import DemoDataGenerator
 from ecom_insight.evaluation import AnomalyEvaluator, AttributionEvaluator
 from ecom_insight.logging import configure_logging
 from ecom_insight.metrics import AnalysisRunner
+from ecom_insight.reporting.runner import ReportRunner
 from ecom_insight.retrieval import KnowledgeBuilder
 from ecom_insight.warehouse import WarehouseBuilder
 
@@ -253,6 +254,32 @@ def build_knowledge_command(
     typer.echo(f"Summary: {result.artifact_path}")
 
 
+@app.command("generate-reports")
+def generate_reports_command(
+    database: Annotated[
+        Path,
+        typer.Option(help="DuckDB warehouse containing attribution and knowledge tables"),
+    ] = Path("data/processed/ecom_insight.duckdb"),
+    artifact_root: Annotated[
+        Path,
+        typer.Option(help="Local directory for validated report summary"),
+    ] = Path("data/processed/artifacts"),
+    limit: Annotated[
+        int | None,
+        typer.Option(help="Optional maximum number of attribution events"),
+    ] = None,
+) -> None:
+    configure_logging()
+    result = ReportRunner(
+        database_path=database,
+        artifact_root=artifact_root,
+    ).run(limit=limit)
+    typer.echo(f"Reports: {result.report_count}")
+    typer.echo(f"Claims: {result.claim_count}")
+    typer.echo(f"Unsupported claims: {result.unsupported_claim_count}")
+    typer.echo(f"Summary: {result.artifact_path}")
+
+
 def build_warehouse_entrypoint() -> None:
     app(args=["build-warehouse", *sys.argv[1:]], prog_name="ecom-build-warehouse")
 
@@ -301,6 +328,13 @@ def build_knowledge_entrypoint() -> None:
     app(
         args=["build-knowledge", *sys.argv[1:]],
         prog_name="ecom-build-knowledge",
+    )
+
+
+def generate_reports_entrypoint() -> None:
+    app(
+        args=["generate-reports", *sys.argv[1:]],
+        prog_name="ecom-generate-reports",
     )
 
 

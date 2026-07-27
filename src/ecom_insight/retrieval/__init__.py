@@ -11,8 +11,10 @@ from ecom_insight.retrieval.models import (
     RetrievalFilters,
     RetrievalHit,
 )
+from ecom_insight.retrieval.repository import DuckDBKnowledgeRepository
 
 __all__ = [
+    "DuckDBKnowledgeRepository",
     "EmbeddingProvider",
     "KnowledgeBuildResult",
     "KnowledgeBuilder",
