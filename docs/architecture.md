@@ -381,6 +381,28 @@ EvidenceReportGenerator Protocol
 
 输入为 Pydantic 校验后的 `EvidenceBundle`，输出为受限 JSON schema。输出中的每个事实必须引用 evidence ID；没有引用的陈述自动降级或拒绝。
 
+### 10.1 Phase 6 已实现链路
+
+```text
+configs/metrics.yaml ─┐
+attribution_rules.yaml ├→ LocalHashingEmbeddingProvider
+公开受控案例 ──────────┘  → dim_knowledge_document
+                           → fact_knowledge_embedding
+
+fact_attribution + fact_attribution_evidence
+→ AttributionEvidenceService（参数化 SQL）
+→ KnowledgeIndex（本地检索）
+→ EvidenceBundle
+→ DeterministicEvidenceReportGenerator（默认）
+  或 StructuredLLMReportGenerator（显式注入）
+→ ReportValidator
+→ fact_attribution_report
+```
+
+真实自动归因候选不会直接成为历史案例。只有后续人工确认的数据才允许以
+`origin=real_reviewed` 进入索引。Phase 6 实际结果和边界见
+[本地检索与证据报告实验](retrieval_reporting_experiments.md)。
+
 ## 11. 可重复构建
 
 建议命令：

@@ -10,7 +10,11 @@ from ecom_insight.anomaly import AnomalyRunner
 from ecom_insight.attribution import AttributionRunner
 from ecom_insight.config import AppSettings
 from ecom_insight.demo import DemoDataGenerator
-from ecom_insight.evaluation import AnomalyEvaluator, AttributionEvaluator
+from ecom_insight.evaluation import (
+    AnomalyEvaluator,
+    AttributionEvaluator,
+    ReportingEvaluator,
+)
 from ecom_insight.logging import configure_logging
 from ecom_insight.metrics import AnalysisRunner
 from ecom_insight.reporting.runner import ReportRunner
@@ -280,6 +284,38 @@ def generate_reports_command(
     typer.echo(f"Summary: {result.artifact_path}")
 
 
+@app.command("evaluate-reporting")
+def evaluate_reporting_command(
+    database: Annotated[
+        Path,
+        typer.Option(help="DuckDB warehouse containing local knowledge tables"),
+    ] = Path("data/processed/ecom_insight.duckdb"),
+    demo_root: Annotated[
+        Path,
+        typer.Option(help="Public controlled-case directory"),
+    ] = Path("data/demo/generated"),
+    artifact_root: Annotated[
+        Path,
+        typer.Option(help="Local directory for retrieval/report evaluation"),
+    ] = Path("data/processed/artifacts"),
+) -> None:
+    configure_logging()
+    result = ReportingEvaluator(
+        database_path=database,
+        demo_root=demo_root,
+        artifact_root=artifact_root,
+    ).run()
+    retrieval = result.summary.retrieval
+    typer.echo(f"Rule Hit@1: {retrieval.rule_hit_at_1:.3f}")
+    typer.echo(f"Rule Hit@3: {retrieval.rule_hit_at_3:.3f}")
+    for variant in result.summary.variants:
+        typer.echo(
+            f"{variant.variant}: status={variant.status}, "
+            f"unsupported_rate={variant.unsupported_claim_rate}"
+        )
+    typer.echo(f"Evaluation: {result.artifact_path}")
+
+
 def build_warehouse_entrypoint() -> None:
     app(args=["build-warehouse", *sys.argv[1:]], prog_name="ecom-build-warehouse")
 
@@ -335,6 +371,13 @@ def generate_reports_entrypoint() -> None:
     app(
         args=["generate-reports", *sys.argv[1:]],
         prog_name="ecom-generate-reports",
+    )
+
+
+def evaluate_reporting_entrypoint() -> None:
+    app(
+        args=["evaluate-reporting", *sys.argv[1:]],
+        prog_name="ecom-evaluate-reporting",
     )
 
 

@@ -11,6 +11,13 @@ from ecom_insight.evaluation.attribution import (
     AttributionEvaluationSummary,
     AttributionEvaluator,
 )
+from ecom_insight.evaluation.reporting import (
+    ReportingEvaluationResult,
+    ReportingEvaluationSummary,
+    ReportingEvaluator,
+    ReportingVariantResult,
+    RetrievalEvaluationSummary,
+)
 
 __all__ = [
     "AnomalyEvaluationResult",
@@ -20,4 +27,9 @@ __all__ = [
     "AttributionEvaluator",
     "CaseEvaluation",
     "DetectorEvaluation",
+    "ReportingEvaluationResult",
+    "ReportingEvaluationSummary",
+    "ReportingEvaluator",
+    "ReportingVariantResult",
+    "RetrievalEvaluationSummary",
 ]

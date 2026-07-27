@@ -17,9 +17,11 @@ not as a calculator or a source of causal claims.
   with real-warehouse alerts and controlled-label evaluation.
 - Phase 5 complete: log-change metric decomposition, ten deterministic evidence rules,
   real-warehouse attribution tables and controlled-scenario evaluation.
+- Phase 6 complete: local knowledge embeddings, parameterized SQL evidence tools,
+  evidence-constrained JSON reports and retrieval/report evaluation.
 - A fully synthetic, cross-domain 140-day demo dataset provides ten controlled anomaly scenarios
   for later detection and attribution evaluation.
-- RAG, constrained report generation, API and frontend remain later phases.
+- API, human feedback workflow and frontend remain later phases.
 
 ## Verified local data
 
@@ -57,6 +59,7 @@ See:
 - [Phase 3 analysis](docs/phase3_analysis.md)
 - [Phase 4 experiments](docs/experiments.md)
 - [Phase 5 attribution experiments](docs/attribution_experiments.md)
+- [Phase 6 retrieval and reporting experiments](docs/retrieval_reporting_experiments.md)
 - [Synthetic data design](docs/synthetic_data.md)
 
 ## Privacy defaults
@@ -85,6 +88,9 @@ uv run ecom-run-anomaly
 uv run ecom-evaluate-anomaly
 uv run ecom-run-attribution
 uv run ecom-evaluate-attribution
+uv run ecom-build-knowledge
+uv run ecom-generate-reports
+uv run ecom-evaluate-reporting
 uv run ecom-generate-demo-data
 uv run pytest
 ```
