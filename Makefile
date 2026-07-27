@@ -1,4 +1,4 @@
-.PHONY: sync lint format typecheck test check audit warehouse analysis anomaly attribution evaluate demo
+.PHONY: sync lint format typecheck test check audit warehouse analysis anomaly attribution evaluate evaluate-attribution demo
 
 sync:
 	uv sync --all-groups
@@ -35,6 +35,9 @@ attribution:
 
 evaluate:
 	uv run ecom-evaluate-anomaly
+
+evaluate-attribution:
+	uv run ecom-evaluate-attribution
 
 demo:
 	uv run ecom-generate-demo-data

@@ -82,8 +82,8 @@ Isolation Forest 使用当前值和相邻观察相对变化两个特征，每个
 
 ## 下一步
 
-1. Phase 5 归因引擎优先消费固定阈值和 MAD/Isolation Forest 的一致告警，同时保留
-   单检测器结果以便审计。
+1. Phase 5 已将同一事件的多个检测器信号合并，同时保留检测器集合以便审计；结果见
+   [Phase 5 证据归因实验](attribution_experiments.md)。
 2. 建立真实数据人工评审表，将恢复期、活动日、数据缺失和真实经营异常分别标注。
 3. 比较“任一检测器”“至少两个检测器一致”和按指标配置阈值三种告警策略。
 4. 在证据规则完成后评测 Evidence Precision、Evidence Coverage 和 Unsupported Claim

@@ -113,6 +113,9 @@ class AttributionRuleEngine:
         natural_search = evidence.get("natural_search_exposure")
         if natural_search is not None and _declined(natural_search):
             support.append(natural_search)
+        search_rank = evidence.get("search_rank")
+        if search_rank is not None and _increased(search_rank):
+            support.append(search_rank)
         counter = [item for item in rates if item is not None and _declined(item)]
         return self._candidate(
             rule_id="R001",
@@ -134,6 +137,9 @@ class AttributionRuleEngine:
         support = _available(evidence, ["exposure_click_rate"])
         if paid is not None and _declined(paid):
             support.append(paid)
+        click_users = evidence.get("click_users")
+        if click_users is not None and _declined(click_users):
+            support.append(click_users)
         product_paid = evidence.get("captured_product_paid_amount")
         if product_paid is not None and _declined(product_paid):
             support.append(product_paid)
@@ -161,6 +167,9 @@ class AttributionRuleEngine:
         support = _available(evidence, ["click_conversion_rate"])
         if paid is not None and _declined(paid):
             support.append(paid)
+        paid_users = evidence.get("paid_users")
+        if paid_users is not None and _declined(paid_users):
+            support.append(paid_users)
         product_paid = evidence.get("captured_product_paid_amount")
         if product_paid is not None and _declined(product_paid):
             support.append(product_paid)
@@ -192,6 +201,9 @@ class AttributionRuleEngine:
         conversion = evidence.get("click_conversion_rate")
         if conversion is not None and _stable(conversion):
             support.append(conversion)
+        avg_item_price = evidence.get("avg_item_price")
+        if avg_item_price is not None and _declined(avg_item_price):
+            support.append(avg_item_price)
         counter = [conversion] if conversion is not None and _declined(conversion) else []
         return self._candidate(
             rule_id="R004",
@@ -213,6 +225,9 @@ class AttributionRuleEngine:
         ):
             return None
         support = _available(evidence, ["refund_rate", "refund_rate_by_pay_time"])
+        refund_amount = evidence.get("refund_amount")
+        if refund_amount is not None and _increased(refund_amount):
+            support.append(refund_amount)
         net_paid = evidence.get("net_paid_amount")
         if net_paid is not None and _declined(net_paid):
             support.append(net_paid)

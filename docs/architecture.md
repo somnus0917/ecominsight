@@ -341,6 +341,23 @@ confidence =
 
 每个分量 0～1 并写入结果。缺少可关联库存或结算数据时，不允许通过语言模型补足。
 
+### 9.4 Phase 5 已实现对象
+
+```text
+fact_anomaly
+→ detector 信号按 entity/date/metric 合并
+→ 最近 14 个有效观察中位数基线
+→ 支付金额对数变化分解
+→ R001-R010 证据规则
+→ fact_attribution
+→ fact_attribution_evidence
+```
+
+`fact_attribution` 的粒度是“异常事件 × 候选规则”，`fact_attribution_evidence` 的
+`evidence_role` 区分 `supporting`、`counter` 和 `context`。规则未满足时使用 R000 和
+`insufficient_data`，不生成无证据原因。实际评测和错误分析见
+[Phase 5 证据归因实验](attribution_experiments.md)。
+
 ## 10. RAG 与 LLM
 
 结构化数值只通过 SQL 和工具查询，不进入向量库。向量检索仅保存：

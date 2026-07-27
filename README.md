@@ -15,9 +15,11 @@ not as a calculator or a source of causal claims.
   financial marts.
 - Phase 4 baseline complete: fixed threshold, Rolling Z-score, Rolling MAD and Isolation Forest,
   with real-warehouse alerts and controlled-label evaluation.
+- Phase 5 complete: log-change metric decomposition, ten deterministic evidence rules,
+  real-warehouse attribution tables and controlled-scenario evaluation.
 - A fully synthetic, cross-domain 140-day demo dataset provides ten controlled anomaly scenarios
   for later detection and attribution evaluation.
-- Attribution, RAG, API and frontend remain later phases.
+- RAG, constrained report generation, API and frontend remain later phases.
 
 ## Verified local data
 
@@ -54,6 +56,7 @@ See:
 - [Metric definitions](docs/metric_definitions.md)
 - [Phase 3 analysis](docs/phase3_analysis.md)
 - [Phase 4 experiments](docs/experiments.md)
+- [Phase 5 attribution experiments](docs/attribution_experiments.md)
 - [Synthetic data design](docs/synthetic_data.md)
 
 ## Privacy defaults
@@ -80,6 +83,8 @@ uv run ecom-build-warehouse
 uv run ecom-run-analysis
 uv run ecom-run-anomaly
 uv run ecom-evaluate-anomaly
+uv run ecom-run-attribution
+uv run ecom-evaluate-attribution
 uv run ecom-generate-demo-data
 uv run pytest
 ```

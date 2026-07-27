@@ -10,7 +10,7 @@ from ecom_insight.anomaly import AnomalyRunner
 from ecom_insight.attribution import AttributionRunner
 from ecom_insight.config import AppSettings
 from ecom_insight.demo import DemoDataGenerator
-from ecom_insight.evaluation import AnomalyEvaluator
+from ecom_insight.evaluation import AnomalyEvaluator, AttributionEvaluator
 from ecom_insight.logging import configure_logging
 from ecom_insight.metrics import AnalysisRunner
 from ecom_insight.warehouse import WarehouseBuilder
@@ -193,6 +193,29 @@ def run_attribution_command(
     typer.echo(f"Summary: {result.artifact_path}")
 
 
+@app.command("evaluate-attribution")
+def evaluate_attribution_command(
+    demo_root: Annotated[
+        Path,
+        typer.Option(help="Public demo data directory with controlled scenario labels"),
+    ] = Path("data/demo/generated"),
+    artifact_root: Annotated[
+        Path,
+        typer.Option(help="Local directory for attribution evaluation results"),
+    ] = Path("data/processed/artifacts"),
+) -> None:
+    configure_logging()
+    result = AttributionEvaluator(
+        demo_root=demo_root,
+        artifact_root=artifact_root,
+    ).run()
+    typer.echo(f"Cases: {result.summary.case_count}")
+    typer.echo(f"Top-1 accuracy: {result.summary.rule_top1_accuracy:.3f}")
+    typer.echo(f"Evidence precision: {result.summary.evidence_precision:.3f}")
+    typer.echo(f"Evidence coverage: {result.summary.evidence_coverage:.3f}")
+    typer.echo(f"Evaluation: {result.artifact_path}")
+
+
 def build_warehouse_entrypoint() -> None:
     app(args=["build-warehouse", *sys.argv[1:]], prog_name="ecom-build-warehouse")
 
@@ -227,6 +250,13 @@ def run_attribution_entrypoint() -> None:
     app(
         args=["run-attribution", *sys.argv[1:]],
         prog_name="ecom-run-attribution",
+    )
+
+
+def evaluate_attribution_entrypoint() -> None:
+    app(
+        args=["evaluate-attribution", *sys.argv[1:]],
+        prog_name="ecom-evaluate-attribution",
     )
 
 
