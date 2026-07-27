@@ -134,6 +134,8 @@ class AttributionRuleEngine:
         paid = evidence.get("paid_amount")
         if target not in {"paid_amount", "exposure_click_rate"} or not _declined(ctr):
             return None
+        if target == "paid_amount" and not _declined(paid):
+            return None
         support = _available(evidence, ["exposure_click_rate"])
         if paid is not None and _declined(paid):
             support.append(paid)
@@ -163,6 +165,8 @@ class AttributionRuleEngine:
         conversion = evidence.get("click_conversion_rate")
         paid = evidence.get("paid_amount")
         if target not in {"paid_amount", "click_conversion_rate"} or not _declined(conversion):
+            return None
+        if target == "paid_amount" and not _declined(paid):
             return None
         support = _available(evidence, ["click_conversion_rate"])
         if paid is not None and _declined(paid):
@@ -194,6 +198,8 @@ class AttributionRuleEngine:
         aov = evidence.get("avg_order_value")
         paid = evidence.get("paid_amount")
         if target not in {"paid_amount", "avg_order_value"} or not _declined(aov):
+            return None
+        if target == "paid_amount" and not _declined(paid):
             return None
         support = _available(evidence, ["avg_order_value"])
         if paid is not None and _declined(paid):
@@ -232,6 +238,8 @@ class AttributionRuleEngine:
         if net_paid is not None and _declined(net_paid):
             support.append(net_paid)
         paid = evidence.get("paid_amount")
+        if target == "paid_amount" and not _declined(paid):
+            return None
         if paid is not None and _declined(paid):
             support.append(paid)
         return self._candidate(
@@ -255,6 +263,10 @@ class AttributionRuleEngine:
             return None
         support = _available(evidence, ["ad_spend", "roas"])
         paid = evidence.get("paid_amount")
+        if target == "paid_amount" and not (
+            _stable(paid) or _declined(paid, -STABLE_THRESHOLD)
+        ):
+            return None
         if paid is not None and (
             _stable(paid) or _declined(paid, -STABLE_THRESHOLD)
         ):
@@ -280,6 +292,9 @@ class AttributionRuleEngine:
         product_paid = evidence.get("core_product_paid_amount")
         conversion = evidence.get("click_conversion_rate")
         if not (_declined(product_paid) or _declined(conversion)):
+            return None
+        paid = evidence.get("paid_amount")
+        if target == "paid_amount" and not _declined(paid):
             return None
         support = _available(evidence, ["available_qty"])
         support.extend(

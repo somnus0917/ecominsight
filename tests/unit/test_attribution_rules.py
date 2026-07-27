@@ -60,3 +60,24 @@ def test_rule_engine_does_not_emit_inventory_cause_without_inventory_evidence() 
 
     assert all(candidate.rule_id != "R007" for candidate in candidates)
 
+
+def test_paid_amount_increase_does_not_emit_decline_causes() -> None:
+    candidates = AttributionRuleEngine().evaluate(
+        target_metric="paid_amount",
+        evidence={
+            "paid_amount": _evidence("paid_amount", 0.30),
+            "exposure_users": _evidence("exposure_users", -0.30),
+            "exposure_click_rate": _evidence("exposure_click_rate", -0.30),
+            "click_conversion_rate": _evidence("click_conversion_rate", -0.30),
+            "avg_order_value": _evidence("avg_order_value", -0.30),
+            "refund_rate": _evidence("refund_rate", 0.30),
+            "ad_spend": _evidence("ad_spend", 0.30),
+            "roas": _evidence("roas", -0.30),
+            "available_qty": _evidence("available_qty", -0.80),
+            "core_product_paid_amount": _evidence(
+                "core_product_paid_amount", -0.30
+            ),
+        },
+    )
+
+    assert candidates == []
