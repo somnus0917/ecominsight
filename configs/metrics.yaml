@@ -1,73 +1,434 @@
-version: 1
+version: 2
 canonical_currency: CNY
 canonical_money_unit: yuan
+framework:
+  primary_kpis:
+    - paid_amount
+    - settlement_amount
+  drivers:
+    - exposure_users
+    - exposure_click_rate
+    - click_conversion_rate
+    - avg_order_value
+  guardrails:
+    - refund_rate_by_pay_time
+    - ad_spend
+    - available_qty
+    - days_of_supply
 metrics:
   - code: paid_amount
     name: 支付金额
-    definition: 用户实际支付的商品金额
+    role: outcome
+    definition: 用户支付金额；用于经营结果监控
+    formula: sum(paid_amount)
     source: fact_shop_daily.paid_amount
     grain: shop_day
     unit: CNY
+    aggregation: sum
+    applicable_platforms: [all]
     null_policy: preserve_null
     minimum_history: 7
-  - code: exposure_users
-    name: 商品曝光人数
-    definition: 当日看见商品的去重用户数
-    source: fact_shop_daily.exposure_users
+    caveats: [不同平台支付口径需保留 source_system]
+  - code: gmv
+    name: 成交金额
+    role: diagnostic
+    definition: 来源定义的成交金额
+    formula: sum(gmv)
+    source: fact_shop_daily.gmv
+    grain: shop_day
+    unit: CNY
+    aggregation: sum
+    applicable_platforms: [all]
+    null_policy: preserve_null
+    minimum_history: 7
+    caveats: [外部平台 gmv 与 paid_amount 当前同值且口径待确认]
+  - code: paid_orders
+    name: 支付订单数
+    role: driver
+    definition: 当日支付成功订单数量
+    formula: sum(paid_orders)
+    source: fact_shop_daily.paid_orders
+    grain: shop_day
+    unit: orders
+    aggregation: sum
+    applicable_platforms: [all]
+    null_policy: preserve_null
+    minimum_history: 7
+    caveats: []
+  - code: paid_items
+    name: 成交件数
+    role: diagnostic
+    definition: 当日支付成功商品件数
+    formula: sum(paid_items)
+    source: fact_shop_daily.paid_items
+    grain: shop_day
+    unit: items
+    aggregation: sum
+    applicable_platforms: [all]
+    null_policy: preserve_null
+    minimum_history: 7
+    caveats: [抖音日报覆盖率不是100%]
+  - code: paid_users
+    name: 支付人数
+    role: driver
+    definition: 当日支付成功的去重用户数
+    formula: sum(paid_users)
+    source: fact_shop_daily.paid_users
     grain: shop_day
     unit: users
+    aggregation: sum_with_cross_day_overlap
+    applicable_platforms: [douyin]
     null_policy: preserve_null
     minimum_history: 7
-  - code: exposure_click_rate
-    name: 曝光点击率
-    definition: 商品点击人数除以商品曝光人数
-    formula: click_users / nullif(exposure_users, 0)
-    source: fact_shop_daily
-    grain: shop_day
-    unit: ratio
-    null_policy: null_when_denominator_zero
-    minimum_history: 7
-  - code: click_conversion_rate
-    name: 点击成交率
-    definition: 支付人数除以商品点击人数
-    formula: paid_users / nullif(click_users, 0)
-    source: fact_shop_daily
-    grain: shop_day
-    unit: ratio
-    null_policy: null_when_denominator_zero
-    minimum_history: 7
+    caveats: [跨日求和不代表期间去重用户]
   - code: avg_order_value
     name: 客单价
+    role: driver
     definition: 支付金额除以支付人数
-    formula: paid_amount / nullif(paid_users, 0)
+    formula: sum(paid_amount) / nullif(sum(paid_users), 0)
     source: fact_shop_daily
     grain: shop_day
     unit: CNY_per_user
+    aggregation: ratio_of_sums
+    applicable_platforms: [douyin]
     null_policy: null_when_denominator_zero
     minimum_history: 7
-  - code: refund_rate_by_pay_time
-    name: 退款率（支付时间）
-    definition: 按支付时间口径统计的退款金额率
-    source: fact_shop_daily.refund_rate_by_pay_time
+    caveats: [优先使用重算值并与源值对账]
+  - code: avg_item_price
+    name: 件单价
+    role: diagnostic
+    definition: 支付金额除以成交件数
+    formula: sum(paid_amount) / nullif(sum(paid_items), 0)
+    source: fact_shop_daily
     grain: shop_day
-    unit: ratio
-    null_policy: preserve_null
-    minimum_history: 14
-  - code: ad_spend
-    name: 广告消耗
-    definition: 店铺被投产生的广告消耗
-    source: fact_shop_daily.ad_spend
+    unit: CNY_per_item
+    aggregation: ratio_of_sums
+    applicable_platforms: [all]
+    null_policy: null_when_denominator_zero
+    minimum_history: 7
+    caveats: [成交件数缺失时不计算]
+  - code: exposure_users
+    name: 商品曝光人数
+    role: driver
+    definition: 当日商品曝光去重用户数
+    formula: sum(exposure_users)
+    source: fact_shop_daily.exposure_users
     grain: shop_day
-    unit: CNY
+    unit: users
+    aggregation: sum_with_cross_day_overlap
+    applicable_platforms: [douyin]
     null_policy: preserve_null
-    minimum_history: 14
-  - code: roas
-    name: 广告投入产出比
-    definition: 支付金额除以广告消耗
-    formula: paid_amount / nullif(ad_spend, 0)
+    minimum_history: 7
+    caveats: [跨日和跨店求和存在用户重叠]
+  - code: click_users
+    name: 商品点击人数
+    role: driver
+    definition: 当日商品点击去重用户数
+    formula: sum(click_users)
+    source: fact_shop_daily.click_users
+    grain: shop_day
+    unit: users
+    aggregation: sum_with_cross_day_overlap
+    applicable_platforms: [douyin]
+    null_policy: preserve_null
+    minimum_history: 7
+    caveats: [跨日求和存在用户重叠]
+  - code: exposure_click_rate
+    name: 曝光点击率
+    role: driver
+    definition: 商品点击人数除以商品曝光人数
+    formula: sum(click_users) / nullif(sum(exposure_users), 0)
     source: fact_shop_daily
     grain: shop_day
     unit: ratio
+    aggregation: ratio_of_sums
+    applicable_platforms: [douyin]
+    null_policy: null_when_denominator_zero
+    minimum_history: 7
+    caveats: [使用人数口径]
+  - code: click_conversion_rate
+    name: 点击成交率
+    role: driver
+    definition: 支付人数除以商品点击人数
+    formula: sum(paid_users) / nullif(sum(click_users), 0)
+    source: fact_shop_daily
+    grain: shop_day
+    unit: ratio
+    aggregation: ratio_of_sums
+    applicable_platforms: [douyin]
+    null_policy: null_when_denominator_zero
+    minimum_history: 7
+    caveats: [使用人数口径]
+  - code: exposure_conversion_rate
+    name: 曝光成交率
+    role: diagnostic
+    definition: 支付人数除以商品曝光人数
+    formula: sum(paid_users) / nullif(sum(exposure_users), 0)
+    source: fact_shop_daily
+    grain: shop_day
+    unit: ratio
+    aggregation: ratio_of_sums
+    applicable_platforms: [douyin]
+    null_policy: null_when_denominator_zero
+    minimum_history: 7
+    caveats: [使用人数口径]
+  - code: gpm
+    name: 千次曝光支付金额
+    role: diagnostic
+    definition: 支付金额除以曝光人数并乘以1000
+    formula: sum(paid_amount) * 1000 / nullif(sum(exposure_users), 0)
+    source: fact_shop_daily
+    grain: shop_day
+    unit: CNY_per_1000_exposures
+    aggregation: ratio_of_sums
+    applicable_platforms: [douyin]
+    null_policy: null_when_denominator_zero
+    minimum_history: 7
+    caveats: [源 GPM 覆盖不足，分析层优先重算]
+  - code: refund_amount_by_pay_time
+    name: 退款金额（支付时间）
+    role: guardrail
+    definition: 按支付日期归属的退款金额
+    formula: sum(refund_amount_by_pay_time)
+    source: fact_shop_daily.refund_amount_by_pay_time
+    grain: shop_day
+    unit: CNY
+    aggregation: sum
+    applicable_platforms: [douyin]
+    null_policy: preserve_null
+    minimum_history: 14
+    caveats: [覆盖率较低，不得与退款时间口径合并]
+  - code: refund_rate_by_pay_time
+    name: 退款率（支付时间）
+    role: guardrail
+    definition: 来源定义的支付时间口径退款金额率
+    formula: weighted_source_ratio
+    source: fact_shop_daily.refund_rate_by_pay_time
+    grain: shop_day
+    unit: ratio
+    aggregation: not_additive
+    applicable_platforms: [douyin]
+    null_policy: preserve_null
+    minimum_history: 14
+    caveats: [分母口径需结合平台定义]
+  - code: ad_spend
+    name: 广告消耗
+    role: guardrail
+    definition: 店铺被投产生的广告消耗
+    formula: sum(ad_spend)
+    source: fact_shop_daily.ad_spend
+    grain: shop_day
+    unit: CNY
+    aggregation: sum
+    applicable_platforms: [douyin]
+    null_policy: preserve_null
+    minimum_history: 14
+    caveats: [缺失不能自动补0]
+  - code: roas
+    name: 广告投入产出比
+    role: driver
+    definition: 支付金额除以广告消耗
+    formula: sum(paid_amount) / nullif(sum(ad_spend), 0)
+    source: fact_shop_daily
+    grain: shop_day
+    unit: ratio
+    aggregation: ratio_of_sums
+    applicable_platforms: [douyin]
     null_policy: null_when_denominator_zero
     minimum_history: 14
-
+    caveats: [支付金额包含非广告贡献，不能解释为广告增量ROAS]
+  - code: settlement_amount
+    name: 结算金额
+    role: outcome
+    definition: 结算流水的结算金额合计
+    formula: sum(settlement_amount)
+    source: fact_settlement.settlement_amount
+    grain: settlement_line
+    unit: CNY
+    aggregation: sum
+    applicable_platforms: [douyin]
+    null_policy: exclude_file_summary_rows
+    minimum_history: 7
+    caveats: [按结算日而非支付日]
+  - code: user_paid_settlement
+    name: 结算流水用户实付
+    role: diagnostic
+    definition: 结算流水记录的用户实付金额合计
+    formula: sum(user_paid)
+    source: fact_settlement.user_paid
+    grain: settlement_line
+    unit: CNY
+    aggregation: sum
+    applicable_platforms: [douyin]
+    null_policy: preserve_null
+    minimum_history: 7
+    caveats: [同一订单多结算行，需按结算类型解释]
+  - code: income_total
+    name: 收入合计
+    role: diagnostic
+    definition: 结算流水收入合计
+    formula: sum(income_total)
+    source: fact_settlement.income_total
+    grain: settlement_line
+    unit: CNY
+    aggregation: sum
+    applicable_platforms: [douyin]
+    null_policy: preserve_null
+    minimum_history: 7
+    caveats: [符号随结算类型变化]
+  - code: platform_service_fee
+    name: 平台服务费
+    role: guardrail
+    definition: 结算流水平台服务费；保留源符号
+    formula: sum(platform_service_fee)
+    source: fact_settlement.platform_service_fee
+    grain: settlement_line
+    unit: CNY
+    aggregation: sum
+    applicable_platforms: [douyin]
+    null_policy: zero_is_observed_zero
+    minimum_history: 7
+    caveats: [通常为负数，不能用绝对值替代]
+  - code: creator_commission
+    name: 达人佣金
+    role: guardrail
+    definition: 结算流水达人佣金；保留源符号
+    formula: sum(creator_commission)
+    source: fact_settlement.creator_commission
+    grain: settlement_line
+    unit: CNY
+    aggregation: sum
+    applicable_platforms: [douyin]
+    null_policy: zero_is_observed_zero
+    minimum_history: 7
+    caveats: [通常为负数]
+  - code: subsidy_total
+    name: 补贴合计
+    role: diagnostic
+    definition: 平台、达人、银行及支付营销补贴合计
+    formula: sum(platform_subsidy + creator_subsidy + bank_subsidy + platform_payment_subsidy + monthly_payment_marketing_subsidy)
+    source: fact_settlement
+    grain: settlement_line
+    unit: CNY
+    aggregation: sum
+    applicable_platforms: [douyin]
+    null_policy: observed_zero
+    minimum_history: 7
+    caveats: [政府垫资和店铺券单独展示]
+  - code: available_qty
+    name: 可用库存
+    role: guardrail
+    definition: WMS 当前可用库存数量
+    formula: sum(available_qty)
+    source: fact_inventory_snapshot.available_qty
+    grain: snapshot_warehouse_sku
+    unit: items
+    aggregation: snapshot_sum
+    applicable_platforms: [wms]
+    null_policy: preserve_null
+    minimum_history: 1
+    caveats: [负值作为业务状态保留]
+  - code: sales_7d
+    name: 近7日销量
+    role: driver
+    definition: 最新库存快照携带的近7日出库销量
+    formula: sum(quantity) filter (where flow_type = 'sale')
+    source: fact_inventory_flow_daily
+    grain: snapshot_warehouse_sku
+    unit: items
+    aggregation: latest_as_of_sum
+    applicable_platforms: [wms]
+    null_policy: missing_means_no_observed_flow
+    minimum_history: 1
+    caveats: [必须限定最新 as-of 快照，不能跨快照重复求和]
+  - code: inbound_30d
+    name: 近30日入库量
+    role: diagnostic
+    definition: 最新库存快照携带的近30日入库量
+    formula: sum(quantity) filter (where flow_type = 'inbound')
+    source: fact_inventory_flow_daily
+    grain: snapshot_warehouse_sku
+    unit: items
+    aggregation: latest_as_of_sum
+    applicable_platforms: [wms]
+    null_policy: missing_means_no_observed_flow
+    minimum_history: 1
+    caveats: [必须限定最新 as-of 快照]
+  - code: inventory_sales_ratio
+    name: 库销比
+    role: diagnostic
+    definition: 可用库存除以近7日销量
+    formula: available_qty / nullif(sales_7d, 0)
+    source: mart_inventory_health_latest
+    grain: snapshot_warehouse_sku
+    unit: ratio
+    aggregation: not_additive
+    applicable_platforms: [wms]
+    null_policy: null_when_no_sales
+    minimum_history: 1
+    caveats: [负库存单独标记]
+  - code: days_of_supply
+    name: 预计可售天数
+    role: guardrail
+    definition: 可用库存除以近7日日均销量
+    formula: available_qty / nullif(sales_7d / 7.0, 0)
+    source: mart_inventory_health_latest
+    grain: snapshot_warehouse_sku
+    unit: days
+    aggregation: not_additive
+    applicable_platforms: [wms]
+    null_policy: null_when_no_sales
+    minimum_history: 1
+    caveats: [只反映最近7日速度，不含预测季节性]
+  - code: stockout_risk
+    name: 缺货风险
+    role: guardrail
+    definition: 可用库存非正，或有销量且预计可售天数不超过7天
+    formula: available_qty <= 0 or (sales_7d > 0 and days_of_supply <= 7)
+    source: mart_inventory_health_latest
+    grain: snapshot_warehouse_sku
+    unit: boolean
+    aggregation: count_or_share
+    applicable_platforms: [wms]
+    null_policy: false_only_when_evidence_present
+    minimum_history: 1
+    caveats: [阈值为初始运营规则，不是学习模型]
+  - code: product_paid_amount
+    name: 商品支付金额
+    role: driver
+    definition: 商品日支付金额
+    formula: sum(paid_amount)
+    source: fact_product_daily.paid_amount
+    grain: shop_product_day
+    unit: CNY
+    aggregation: sum
+    applicable_platforms: [douyin]
+    null_policy: preserve_null
+    minimum_history: 1
+    caveats: [仅覆盖7个采集日]
+  - code: traffic_share
+    name: 渠道流量占比
+    role: driver
+    definition: 渠道曝光或来源指标占总量比例
+    formula: source traffic share
+    source: fact_channel_daily.traffic_share
+    grain: shop_channel_day
+    unit: ratio
+    aggregation: not_additive
+    applicable_platforms: [douyin]
+    null_policy: preserve_null
+    minimum_history: 1
+    caveats: [具体分子由 source_metric 指定]
+  - code: search_rank
+    name: 搜索词排名
+    role: driver
+    definition: 本店词或行业词在采集结果中的排名
+    formula: rank
+    source: fact_search_term_daily.rank
+    grain: shop_term_day
+    unit: rank
+    aggregation: latest_or_distribution
+    applicable_platforms: [douyin]
+    null_policy: preserve_null
+    minimum_history: 1
+    caveats: [当前排名仅1到5，可能是Top-N截断]

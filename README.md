@@ -11,6 +11,8 @@ not as a calculator or a source of causal claims.
 - Phase 0 complete: read-only data audit, data dictionary and architecture.
 - Phase 1 complete: Python 3.12/uv project, configuration, logging and quality tooling.
 - Phase 2 complete: privacy-first adapters, Parquet staging and DuckDB warehouse.
+- Phase 3 complete: validated metric registry and shop, product, channel, search, inventory and
+  financial marts.
 - Anomaly detection, attribution, RAG, API and frontend remain later phases.
 
 ## Verified local data
@@ -45,6 +47,8 @@ See:
 - [Architecture](docs/architecture.md)
 - [Warehouse implementation](docs/warehouse.md)
 - [Privacy and security](docs/privacy_and_security.md)
+- [Metric definitions](docs/metric_definitions.md)
+- [Phase 3 analysis](docs/phase3_analysis.md)
 
 ## Privacy defaults
 
@@ -67,6 +71,7 @@ Set `ECOM_SOURCE_ROOT` to the snapshot's `current` directory, then:
 ```bash
 uv run ecom-audit-data
 uv run ecom-build-warehouse
+uv run ecom-run-analysis
 uv run pytest
 ```
 

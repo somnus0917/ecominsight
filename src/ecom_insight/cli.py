@@ -8,6 +8,7 @@ import typer
 
 from ecom_insight.config import AppSettings
 from ecom_insight.logging import configure_logging
+from ecom_insight.metrics import AnalysisRunner
 from ecom_insight.warehouse import WarehouseBuilder
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
@@ -56,12 +57,47 @@ def audit_data_command(
     typer.echo("Sensitive session/auth/config paths are excluded by design.")
 
 
+@app.command("run-analysis")
+def run_analysis_command(
+    database: Annotated[
+        Path,
+        typer.Option(help="DuckDB warehouse created by Phase 2"),
+    ] = Path("data/processed/ecom_insight.duckdb"),
+    metrics: Annotated[
+        Path,
+        typer.Option(help="Central metric registry YAML"),
+    ] = Path("configs/metrics.yaml"),
+    artifact_root: Annotated[
+        Path,
+        typer.Option(help="Local directory for generated analysis summaries"),
+    ] = Path("data/processed/artifacts"),
+    curated_parquet_root: Annotated[
+        Path,
+        typer.Option(help="Local directory for exported analysis marts"),
+    ] = Path("data/processed/parquet/curated"),
+) -> None:
+    configure_logging()
+    result = AnalysisRunner(
+        database_path=database,
+        metric_config_path=metrics,
+        artifact_root=artifact_root,
+        curated_parquet_root=curated_parquet_root,
+    ).run()
+    typer.echo(f"Metrics: {result.metric_count}")
+    typer.echo(f"Summary: {result.summary_path}")
+    typer.echo(f"Marts: {len(result.mart_counts)}")
+
+
 def build_warehouse_entrypoint() -> None:
     app(args=["build-warehouse", *sys.argv[1:]], prog_name="ecom-build-warehouse")
 
 
 def audit_data_entrypoint() -> None:
     app(args=["audit-data", *sys.argv[1:]], prog_name="ecom-audit-data")
+
+
+def run_analysis_entrypoint() -> None:
+    app(args=["run-analysis", *sys.argv[1:]], prog_name="ecom-run-analysis")
 
 
 if __name__ == "__main__":

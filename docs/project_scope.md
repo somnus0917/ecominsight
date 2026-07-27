@@ -11,15 +11,17 @@
 - Parquet staging with explicit integer-fen money fields.
 - DuckDB curated facts with `DECIMAL(18,2)` yuan fields.
 - Dimensions, product-SKU candidate bridge, quality report and build manifest.
+- Centralized, validated registry for outcome, driver, guardrail and diagnostic metrics.
+- Repeatable Phase 3 analysis pipeline covering shops, products, channels, search,
+  inventory and settlement finance.
+- Thirteen DuckDB analysis marts with Parquet exports and aggregate quality checks.
 - Unit tests for privacy, parsing, adapters, quality and money conversion.
 
 ## Deferred by design
 
-- Phase 3 metric analysis beyond the initial YAML registry.
 - Phase 4 anomaly algorithms and comparison experiments.
 - Phase 5 attribution rules and evidence graph.
 - Phase 6 RAG and constrained LLM reporting.
 - Phase 7 FastAPI, React, Docker and screenshots.
 
 The deferred layers must consume curated facts. They may not reopen raw company files.
-

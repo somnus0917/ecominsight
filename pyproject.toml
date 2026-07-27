@@ -27,6 +27,7 @@ dev = [
 [project.scripts]
 ecom-build-warehouse = "ecom_insight.cli:build_warehouse_entrypoint"
 ecom-audit-data = "ecom_insight.cli:audit_data_entrypoint"
+ecom-run-analysis = "ecom_insight.cli:run_analysis_entrypoint"
 
 [build-system]
 requires = ["hatchling"]

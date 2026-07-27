@@ -1,4 +1,4 @@
-.PHONY: sync lint format typecheck test check audit warehouse
+.PHONY: sync lint format typecheck test check audit warehouse analysis
 
 sync:
 	uv sync --all-groups
@@ -23,3 +23,6 @@ audit:
 
 warehouse:
 	uv run ecom-build-warehouse
+
+analysis:
+	uv run ecom-run-analysis
