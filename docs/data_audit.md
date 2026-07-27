@@ -8,7 +8,7 @@
 用户指定的绝对路径
 `/Users/somnus/Documents/luopanhacker/downloads/luopan-server-snapshot-20260727/current`
 在当前环境中不存在。本次审计使用工作区内的等价快照：
-`../luopan-server-snapshot-20260727/current`。
+`./luopan-server-snapshot-20260727/current`。
 
 以下内容仅确认存在，未读取内容：
 

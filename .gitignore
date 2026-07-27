@@ -27,6 +27,7 @@ data/.secrets/
 **/*login*.png
 
 # Raw and locally processed company data
+/luopan-server-snapshot-20260727/
 data/raw/
 data/processed/
 data/artifacts/

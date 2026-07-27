@@ -5,7 +5,7 @@
   "audit_scope": {
     "requested_source": "/Users/somnus/Documents/luopanhacker/downloads/luopan-server-snapshot-20260727/current",
     "requested_source_exists": false,
-    "audited_source": "../luopan-server-snapshot-20260727/current",
+    "audited_source": "./luopan-server-snapshot-20260727/current",
     "authoritative_database": "state/luopan.db",
     "secondary_database": "state/metrics.db",
     "read_only": true,
