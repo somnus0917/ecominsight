@@ -187,6 +187,15 @@ class IsolationForestDetector(BaseDetector):
             model.fit(history_features)
             decision = float(model.decision_function(current_feature)[0])
             score = -float(model.score_samples(current_feature)[0])
+            historical_min = history_features.min(axis=0)
+            historical_max = history_features.max(axis=0)
+            outside_observed_range = bool(
+                np.any(current_feature[0] < historical_min - 1e-12)
+                or np.any(current_feature[0] > historical_max + 1e-12)
+            )
+            is_boundary_novelty = (
+                math.isclose(decision, 0.0, abs_tol=1e-12) and outside_observed_range
+            )
             baseline = median(values[history_start:index])
             current = series.points[index]
             results.append(
@@ -196,7 +205,7 @@ class IsolationForestDetector(BaseDetector):
                     baseline_value=baseline,
                     change_rate=_change_rate(current.value, baseline),
                     anomaly_score=max(0.0, score),
-                    is_anomaly=decision <= 0.0,
+                    is_anomaly=decision < -1e-12 or is_boundary_novelty,
                     history_size=len(history_features),
                 )
             )

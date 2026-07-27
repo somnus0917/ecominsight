@@ -61,3 +61,17 @@ def test_metric_series_rejects_duplicate_dates() -> None:
             metric="paid_amount",
             points=(point, point),
         )
+
+
+def test_isolation_forest_does_not_flag_constant_series() -> None:
+    start = date(2025, 1, 1)
+    series = MetricSeries(
+        entity_type="shop",
+        entity_id="Shop_A",
+        metric="commission_rate",
+        points=tuple(
+            TimeSeriesPoint(date=start + timedelta(days=index), value=0.04) for index in range(60)
+        ),
+    )
+    results = IsolationForestDetector(estimators=30).detect(series)
+    assert not any(result.is_anomaly for result in results)
