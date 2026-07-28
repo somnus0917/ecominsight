@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from datetime import date
 
 from fastapi import FastAPI, HTTPException, Query
@@ -23,15 +25,28 @@ def _validate_date_range(date_from: date | None, date_to: date | None) -> None:
         raise HTTPException(status_code=422, detail="date_from must not exceed date_to")
 
 
-def create_app(settings: ApiSettings | None = None) -> FastAPI:
+def create_app(
+    settings: ApiSettings | None = None, *, validate_database: bool = True
+) -> FastAPI:
     active_settings = settings or ApiSettings()
-    validate_database_data_mode(active_settings.database_path, active_settings.data_mode)
+    if validate_database:
+        validate_database_data_mode(active_settings.database_path, active_settings.data_mode)
     repository = AnalyticsRepository(active_settings.database_path)
     feedback_store = FeedbackStore(active_settings.feedback_database_path)
+
+    @asynccontextmanager
+    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        if not validate_database:
+            validate_database_data_mode(
+                active_settings.database_path, active_settings.data_mode
+            )
+        yield
+
     app = FastAPI(
         title="EcomInsight API",
         version="0.1.0",
         description="Read-only e-commerce analytics and auditable attribution feedback.",
+        lifespan=lifespan,
     )
     app.add_middleware(
         CORSMiddleware,
@@ -177,4 +192,6 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
     return app
 
 
-app = create_app()
+# Importing an ASGI module must not require a local warehouse. The lifespan guard
+# still fails process startup before it can serve a request when lineage is invalid.
+app = create_app(validate_database=False)
