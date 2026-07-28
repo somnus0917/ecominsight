@@ -104,6 +104,7 @@ class DemoPipeline:
             attribution_result = AttributionRunner(
                 database_path=self.database_path,
                 artifact_root=self.artifact_root,
+                config_path=self.rules_config,
             ).run()
             steps.append("run_attribution")
 
@@ -131,6 +132,7 @@ class DemoPipeline:
             AttributionEvaluator(
                 demo_root=self.demo_data_root,
                 artifact_root=self.artifact_root,
+                config_path=self.rules_config,
             ).run()
             steps.append("evaluate_attribution")
 

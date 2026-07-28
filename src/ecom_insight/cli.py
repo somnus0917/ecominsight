@@ -195,11 +195,16 @@ def run_attribution_command(
         Path,
         typer.Option(help="Local directory for attribution summaries"),
     ] = Path("data/processed/artifacts"),
+    rules_config: Annotated[
+        Path,
+        typer.Option(help="Validated attribution threshold and evidence-score settings"),
+    ] = Path("configs/attribution_rules.yaml"),
 ) -> None:
     configure_logging()
     result = AttributionRunner(
         database_path=database,
         artifact_root=artifact_root,
+        config_path=rules_config,
     ).run()
     typer.echo(f"Events: {result.event_count}")
     typer.echo(f"Candidates: {result.candidate_count}")
@@ -217,11 +222,16 @@ def evaluate_attribution_command(
         Path,
         typer.Option(help="Local directory for attribution evaluation results"),
     ] = Path("data/processed/artifacts"),
+    rules_config: Annotated[
+        Path,
+        typer.Option(help="Validated attribution threshold and evidence-score settings"),
+    ] = Path("configs/attribution_rules.yaml"),
 ) -> None:
     configure_logging()
     result = AttributionEvaluator(
         demo_root=demo_root,
         artifact_root=artifact_root,
+        config_path=rules_config,
     ).run()
     typer.echo(f"Cases: {result.summary.case_count}")
     typer.echo(f"Top-1 accuracy: {result.summary.rule_top1_accuracy:.3f}")

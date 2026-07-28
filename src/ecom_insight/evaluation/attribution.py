@@ -12,7 +12,11 @@ from typing import Any
 import structlog
 from pydantic import BaseModel, ConfigDict
 
-from ecom_insight.attribution import AttributionRuleEngine, EvidenceItem
+from ecom_insight.attribution import (
+    AttributionRuleEngine,
+    AttributionRulesConfig,
+    EvidenceItem,
+)
 
 LOGGER = structlog.get_logger(__name__)
 
@@ -332,11 +336,17 @@ class AttributionEvaluator:
         *,
         demo_root: Path,
         artifact_root: Path,
+        config_path: Path | None = Path("configs/attribution_rules.yaml"),
         rule_engine: AttributionRuleEngine | None = None,
     ) -> None:
         self.demo_root = demo_root.resolve()
         self.artifact_root = artifact_root.resolve()
-        self.rule_engine = rule_engine or AttributionRuleEngine()
+        self.config_path = config_path.resolve() if config_path is not None else None
+        self.rule_engine = rule_engine or AttributionRuleEngine(
+            AttributionRulesConfig.load(self.config_path)
+            if self.config_path is not None
+            else None
+        )
 
     def run(self) -> AttributionEvaluationResult:
         labels = _load_json_records(self.demo_root / "anomaly_labels.json")

@@ -12,8 +12,7 @@ PAID_AMOUNT_FACTORS = (
     "avg_order_value",
 )
 PAID_AMOUNT_FORMULA = (
-    "paid_amount ~= exposure_users * exposure_click_rate "
-    "* click_conversion_rate * avg_order_value"
+    "paid_amount ~= exposure_users * exposure_click_rate * click_conversion_rate * avg_order_value"
 )
 
 
@@ -33,9 +32,7 @@ def decompose_multiplicative_change(
 ) -> MetricDecomposition:
     required = (target_metric, *factor_metrics)
     missing = [
-        metric
-        for metric in required
-        if current.get(metric) is None or baseline.get(metric) is None
+        metric for metric in required if current.get(metric) is None or baseline.get(metric) is None
     ]
     if missing:
         return MetricDecomposition(
@@ -76,9 +73,7 @@ def decompose_multiplicative_change(
                 current_value=values[metric][1],
                 change_rate=_change_rate(values[metric][1], values[metric][0]),
                 log_change=factor_logs[metric],
-                contribution_share=(
-                    abs(factor_logs[metric]) / magnitude if magnitude > 0 else 0.0
-                ),
+                contribution_share=(abs(factor_logs[metric]) / magnitude if magnitude > 0 else 0.0),
             )
             for metric in factor_metrics
         ]

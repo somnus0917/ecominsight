@@ -84,9 +84,7 @@ class AttributionCandidate(AttributionModel):
         validation_alias=AliasChoices("evidence_score", "confidence"),
     )
     evidence_score_breakdown: EvidenceScoreBreakdown = Field(
-        validation_alias=AliasChoices(
-            "evidence_score_breakdown", "confidence_breakdown"
-        )
+        validation_alias=AliasChoices("evidence_score_breakdown", "confidence_breakdown")
     )
     supporting_evidence: list[EvidenceItem] = Field(default_factory=list)
     counter_evidence: list[EvidenceItem] = Field(default_factory=list)

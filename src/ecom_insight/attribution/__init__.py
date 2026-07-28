@@ -1,5 +1,6 @@
 """Evidence rules and metric decomposition (Phase 5)."""
 
+from ecom_insight.attribution.config import AttributionRulesConfig
 from ecom_insight.attribution.decomposition import (
     PAID_AMOUNT_FACTORS,
     PAID_AMOUNT_FORMULA,
@@ -25,6 +26,7 @@ __all__ = [
     "AttributionCandidate",
     "AttributionResult",
     "AttributionRuleEngine",
+    "AttributionRulesConfig",
     "AttributionRunResult",
     "AttributionRunner",
     "ConfidenceBreakdown",

@@ -2,37 +2,37 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
+from ecom_insight.attribution.config import AttributionRulesConfig
 from ecom_insight.attribution.models import (
     AttributionCandidate,
     EvidenceItem,
     EvidenceScoreBreakdown,
 )
 
-DECLINE_THRESHOLD = -0.15
-INCREASE_THRESHOLD = 0.15
-STABLE_THRESHOLD = 0.12
 
-
-def _available(
-    evidence: Mapping[str, EvidenceItem], metrics: Sequence[str]
-) -> list[EvidenceItem]:
+def _available(evidence: Mapping[str, EvidenceItem], metrics: Sequence[str]) -> list[EvidenceItem]:
     return [evidence[metric] for metric in metrics if metric in evidence]
-
-
-def _declined(item: EvidenceItem | None, threshold: float = DECLINE_THRESHOLD) -> bool:
-    return item is not None and item.change_rate is not None and item.change_rate <= threshold
-
-
-def _increased(item: EvidenceItem | None, threshold: float = INCREASE_THRESHOLD) -> bool:
-    return item is not None and item.change_rate is not None and item.change_rate >= threshold
-
-
-def _stable(item: EvidenceItem | None, threshold: float = STABLE_THRESHOLD) -> bool:
-    return item is not None and item.change_rate is not None and abs(item.change_rate) <= threshold
 
 
 class AttributionRuleEngine:
     """Deterministic evidence rules; candidates are inferences, never causal facts."""
+
+    def __init__(self, config: AttributionRulesConfig | None = None) -> None:
+        self.config = config or AttributionRulesConfig()
+
+    def _declined(self, item: EvidenceItem | None, threshold: float | None = None) -> bool:
+        minimum = threshold if threshold is not None else self.config.thresholds.decline_rate
+        return item is not None and item.change_rate is not None and item.change_rate <= -minimum
+
+    def _increased(self, item: EvidenceItem | None, threshold: float | None = None) -> bool:
+        minimum = threshold if threshold is not None else self.config.thresholds.increase_rate
+        return item is not None and item.change_rate is not None and item.change_rate >= minimum
+
+    def _stable(self, item: EvidenceItem | None, threshold: float | None = None) -> bool:
+        maximum = threshold if threshold is not None else self.config.thresholds.stable_rate
+        return (
+            item is not None and item.change_rate is not None and abs(item.change_rate) <= maximum
+        )
 
     def evaluate(
         self,
@@ -56,10 +56,10 @@ class AttributionRuleEngine:
             )
             if candidate is not None
         ]
-        return sorted(candidates, key=lambda candidate: candidate.confidence, reverse=True)
+        return sorted(candidates, key=lambda candidate: candidate.evidence_score, reverse=True)
 
-    @staticmethod
     def _candidate(
+        self,
         *,
         rule_id: str,
         cause_code: str,
@@ -78,7 +78,10 @@ class AttributionRuleEngine:
             source_reliability=source_reliability,
             directional_consistency=consistency,
             temporal_alignment=1.0,
-            contradiction_penalty=min(len(counter) * 0.15, 0.6),
+            contradiction_penalty=min(
+                len(counter) * self.config.evidence_score.contradiction_penalty_per_item,
+                self.config.evidence_score.contradiction_penalty_cap,
+            ),
         )
         return AttributionCandidate(
             rule_id=rule_id,
@@ -98,9 +101,9 @@ class AttributionRuleEngine:
     ) -> AttributionCandidate | None:
         paid = evidence.get("paid_amount")
         exposure = evidence.get("exposure_users")
-        if target not in {"paid_amount", "exposure_users"} or not _declined(exposure):
+        if target not in {"paid_amount", "exposure_users"} or not self._declined(exposure):
             return None
-        if target == "paid_amount" and not _declined(paid):
+        if target == "paid_amount" and not self._declined(paid):
             return None
         rates = [
             evidence.get("exposure_click_rate"),
@@ -108,15 +111,15 @@ class AttributionRuleEngine:
         ]
         support = _available(evidence, ["paid_amount", "exposure_users"])
         for item in rates:
-            if item is not None and _stable(item):
+            if item is not None and self._stable(item):
                 support.append(item)
         natural_search = evidence.get("natural_search_exposure")
-        if natural_search is not None and _declined(natural_search):
+        if natural_search is not None and self._declined(natural_search):
             support.append(natural_search)
         search_rank = evidence.get("search_rank")
-        if search_rank is not None and _increased(search_rank):
+        if search_rank is not None and self._increased(search_rank):
             support.append(search_rank)
-        counter = [item for item in rates if item is not None and _declined(item)]
+        counter = [item for item in rates if item is not None and self._declined(item)]
         return self._candidate(
             rule_id="R001",
             cause_code="traffic_decline",
@@ -132,23 +135,23 @@ class AttributionRuleEngine:
     ) -> AttributionCandidate | None:
         ctr = evidence.get("exposure_click_rate")
         paid = evidence.get("paid_amount")
-        if target not in {"paid_amount", "exposure_click_rate"} or not _declined(ctr):
+        if target not in {"paid_amount", "exposure_click_rate"} or not self._declined(ctr):
             return None
-        if target == "paid_amount" and not _declined(paid):
+        if target == "paid_amount" and not self._declined(paid):
             return None
         support = _available(evidence, ["exposure_click_rate"])
-        if paid is not None and _declined(paid):
+        if paid is not None and self._declined(paid):
             support.append(paid)
         click_users = evidence.get("click_users")
-        if click_users is not None and _declined(click_users):
+        if click_users is not None and self._declined(click_users):
             support.append(click_users)
         product_paid = evidence.get("captured_product_paid_amount")
-        if product_paid is not None and _declined(product_paid):
+        if product_paid is not None and self._declined(product_paid):
             support.append(product_paid)
         exposure = evidence.get("exposure_users")
-        if exposure is not None and _stable(exposure):
+        if exposure is not None and self._stable(exposure):
             support.append(exposure)
-        counter = [exposure] if exposure is not None and _declined(exposure) else []
+        counter = [exposure] if exposure is not None and self._declined(exposure) else []
         return self._candidate(
             rule_id="R002",
             cause_code="click_efficiency_decline",
@@ -164,23 +167,23 @@ class AttributionRuleEngine:
     ) -> AttributionCandidate | None:
         conversion = evidence.get("click_conversion_rate")
         paid = evidence.get("paid_amount")
-        if target not in {"paid_amount", "click_conversion_rate"} or not _declined(conversion):
+        if target not in {"paid_amount", "click_conversion_rate"} or not self._declined(conversion):
             return None
-        if target == "paid_amount" and not _declined(paid):
+        if target == "paid_amount" and not self._declined(paid):
             return None
         support = _available(evidence, ["click_conversion_rate"])
-        if paid is not None and _declined(paid):
+        if paid is not None and self._declined(paid):
             support.append(paid)
         paid_users = evidence.get("paid_users")
-        if paid_users is not None and _declined(paid_users):
+        if paid_users is not None and self._declined(paid_users):
             support.append(paid_users)
         product_paid = evidence.get("captured_product_paid_amount")
-        if product_paid is not None and _declined(product_paid):
+        if product_paid is not None and self._declined(product_paid):
             support.append(product_paid)
         ctr = evidence.get("exposure_click_rate")
-        if ctr is not None and _stable(ctr):
+        if ctr is not None and self._stable(ctr):
             support.append(ctr)
-        counter = [ctr] if ctr is not None and _declined(ctr) else []
+        counter = [ctr] if ctr is not None and self._declined(ctr) else []
         return self._candidate(
             rule_id="R003",
             cause_code="conversion_decline",
@@ -197,20 +200,20 @@ class AttributionRuleEngine:
     ) -> AttributionCandidate | None:
         aov = evidence.get("avg_order_value")
         paid = evidence.get("paid_amount")
-        if target not in {"paid_amount", "avg_order_value"} or not _declined(aov):
+        if target not in {"paid_amount", "avg_order_value"} or not self._declined(aov):
             return None
-        if target == "paid_amount" and not _declined(paid):
+        if target == "paid_amount" and not self._declined(paid):
             return None
         support = _available(evidence, ["avg_order_value"])
-        if paid is not None and _declined(paid):
+        if paid is not None and self._declined(paid):
             support.append(paid)
         conversion = evidence.get("click_conversion_rate")
-        if conversion is not None and _stable(conversion):
+        if conversion is not None and self._stable(conversion):
             support.append(conversion)
         avg_item_price = evidence.get("avg_item_price")
-        if avg_item_price is not None and _declined(avg_item_price):
+        if avg_item_price is not None and self._declined(avg_item_price):
             support.append(avg_item_price)
-        counter = [conversion] if conversion is not None and _declined(conversion) else []
+        counter = [conversion] if conversion is not None and self._declined(conversion) else []
         return self._candidate(
             rule_id="R004",
             cause_code="aov_decline",
@@ -226,21 +229,23 @@ class AttributionRuleEngine:
     ) -> AttributionCandidate | None:
         refund = evidence.get("refund_rate")
         refund = refund or evidence.get("refund_rate_by_pay_time")
-        if target not in {"refund_rate", "refund_rate_by_pay_time", "paid_amount"} or not _increased(
-            refund, 0.20
-        ):
+        if target not in {
+            "refund_rate",
+            "refund_rate_by_pay_time",
+            "paid_amount",
+        } or not self._increased(refund, self.config.thresholds.refund_rate_increase):
             return None
         support = _available(evidence, ["refund_rate", "refund_rate_by_pay_time"])
         refund_amount = evidence.get("refund_amount")
-        if refund_amount is not None and _increased(refund_amount):
+        if refund_amount is not None and self._increased(refund_amount):
             support.append(refund_amount)
         net_paid = evidence.get("net_paid_amount")
-        if net_paid is not None and _declined(net_paid):
+        if net_paid is not None and self._declined(net_paid):
             support.append(net_paid)
         paid = evidence.get("paid_amount")
-        if target == "paid_amount" and not _declined(paid):
+        if target == "paid_amount" and not self._declined(paid):
             return None
-        if paid is not None and _declined(paid):
+        if paid is not None and self._declined(paid):
             support.append(paid)
         return self._candidate(
             rule_id="R005",
@@ -259,16 +264,18 @@ class AttributionRuleEngine:
         roas = evidence.get("roas")
         if target not in {"ad_spend", "paid_amount"}:
             return None
-        if not _increased(ad_spend, 0.20) or not _declined(roas):
+        if not self._increased(
+            ad_spend, self.config.thresholds.ad_spend_increase
+        ) or not self._declined(roas):
             return None
         support = _available(evidence, ["ad_spend", "roas"])
         paid = evidence.get("paid_amount")
         if target == "paid_amount" and not (
-            _stable(paid) or _declined(paid, -STABLE_THRESHOLD)
+            self._stable(paid) or self._declined(paid, self.config.thresholds.stable_rate)
         ):
             return None
         if paid is not None and (
-            _stable(paid) or _declined(paid, -STABLE_THRESHOLD)
+            self._stable(paid) or self._declined(paid, self.config.thresholds.stable_rate)
         ):
             support.append(paid)
         return self._candidate(
@@ -287,20 +294,18 @@ class AttributionRuleEngine:
         available = evidence.get("available_qty")
         if target not in {"available_qty", "click_conversion_rate", "paid_amount"}:
             return None
-        if not _declined(available, -0.50):
+        if not self._declined(available, self.config.thresholds.inventory_available_decline):
             return None
         product_paid = evidence.get("core_product_paid_amount")
         conversion = evidence.get("click_conversion_rate")
-        if not (_declined(product_paid) or _declined(conversion)):
+        if not (self._declined(product_paid) or self._declined(conversion)):
             return None
         paid = evidence.get("paid_amount")
-        if target == "paid_amount" and not _declined(paid):
+        if target == "paid_amount" and not self._declined(paid):
             return None
         support = _available(evidence, ["available_qty"])
         support.extend(
-            item
-            for item in (product_paid, conversion)
-            if item is not None and _declined(item)
+            item for item in (product_paid, conversion) if item is not None and self._declined(item)
         )
         return self._candidate(
             rule_id="R007",
@@ -319,10 +324,12 @@ class AttributionRuleEngine:
         settlement_ratio = evidence.get("settlement_ratio")
         if target not in {"platform_commission_rate", "settlement_ratio"}:
             return None
-        if not _increased(commission_rate, 0.20):
+        if not self._increased(commission_rate, self.config.thresholds.commission_rate_increase):
             return None
         support = _available(evidence, ["platform_commission_rate"])
-        if settlement_ratio is not None and _declined(settlement_ratio, -0.08):
+        if settlement_ratio is not None and self._declined(
+            settlement_ratio, self.config.thresholds.settlement_ratio_decline
+        ):
             support.append(settlement_ratio)
         return self._candidate(
             rule_id="R008",
@@ -340,19 +347,21 @@ class AttributionRuleEngine:
         ratio = evidence.get("settlement_ratio")
         amount = evidence.get("settlement_amount_by_pay_time")
         adjustment = evidence.get("settlement_adjustment")
-        target_declined = _declined(ratio) or _declined(amount)
-        if target not in {
-            "settlement_ratio",
-            "settlement_amount_by_pay_time",
-        } or not target_declined:
+        target_declined = self._declined(ratio) or self._declined(amount)
+        if (
+            target
+            not in {
+                "settlement_ratio",
+                "settlement_amount_by_pay_time",
+            }
+            or not target_declined
+        ):
             return None
-        support = [
-            item for item in (ratio, amount) if item is not None and _declined(item)
-        ]
-        if adjustment is not None and _declined(adjustment):
+        support = [item for item in (ratio, amount) if item is not None and self._declined(item)]
+        if adjustment is not None and self._declined(adjustment):
             support.append(adjustment)
         paid = evidence.get("paid_amount")
-        if paid is not None and _stable(paid):
+        if paid is not None and self._stable(paid):
             support.append(paid)
         missing = []
         if adjustment is None:
@@ -366,14 +375,18 @@ class AttributionRuleEngine:
             required_count=3,
             explanation="结算比例或结算金额下降, 支付相对稳定时应优先核查结算侧调整.",
             missing=missing,
-            source_reliability=0.85 if missing else 1.0,
+            source_reliability=(
+                self.config.evidence_score.missing_adjustment_source_reliability if missing else 1.0
+            ),
         )
 
     def _overstock(
         self, target: str, evidence: Mapping[str, EvidenceItem]
     ) -> AttributionCandidate | None:
         days = evidence.get("days_of_supply")
-        if target not in {"days_of_supply", "available_qty"} or not _increased(days, 0.50):
+        if target not in {"days_of_supply", "available_qty"} or not self._increased(
+            days, self.config.thresholds.days_of_supply_increase
+        ):
             return None
         available = evidence.get("available_qty")
         sales = evidence.get("sales_7d")
@@ -381,7 +394,7 @@ class AttributionRuleEngine:
         support.extend(
             item
             for item in (available, sales)
-            if item is not None and (_increased(item) or _declined(item))
+            if item is not None and (self._increased(item) or self._declined(item))
         )
         return self._candidate(
             rule_id="R010",

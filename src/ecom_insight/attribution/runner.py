@@ -12,6 +12,7 @@ from typing import Any
 import duckdb
 import structlog
 
+from ecom_insight.attribution.config import AttributionRulesConfig
 from ecom_insight.attribution.decomposition import decompose_paid_amount
 from ecom_insight.attribution.models import (
     AttributionCandidate,
@@ -84,11 +85,15 @@ class AttributionRunner:
         *,
         database_path: Path,
         artifact_root: Path,
+        config_path: Path | None = Path("configs/attribution_rules.yaml"),
         rule_engine: AttributionRuleEngine | None = None,
     ) -> None:
         self.database_path = database_path.resolve()
         self.artifact_root = artifact_root.resolve()
-        self.rule_engine = rule_engine or AttributionRuleEngine()
+        self.config_path = config_path.resolve() if config_path is not None else None
+        self.rule_engine = rule_engine or AttributionRuleEngine(
+            AttributionRulesConfig.load(self.config_path) if self.config_path is not None else None
+        )
 
     def run(self) -> AttributionRunResult:
         if not self.database_path.is_file():
@@ -124,13 +129,13 @@ class AttributionRunner:
             ]
             evidence_count = self._publish(connection, results)
 
-        candidates = [
-            candidate for result in results for candidate in result.candidates
-        ]
+        candidates = [candidate for result in results for candidate in result.candidates]
         rule_counts = dict(Counter(candidate.rule_id for candidate in candidates))
         payload = {
             "schema_version": "1",
             "data_origin": "real",
+            "rule_config_path": str(self.config_path) if self.config_path else None,
+            "rule_config_version": self.rule_engine.config.version,
             "event_grain": "entity x date x metric",
             "event_count": len(results),
             "candidate_count": len(candidates),
@@ -245,9 +250,7 @@ class AttributionRunner:
                     "date": row_date,
                     **{
                         metric: float(value) if value is not None else None
-                        for metric, value in zip(
-                            SHOP_EVIDENCE_METRICS, row[2:], strict=True
-                        )
+                        for metric, value in zip(SHOP_EVIDENCE_METRICS, row[2:], strict=True)
                     },
                 }
             )
@@ -279,9 +282,7 @@ class AttributionRunner:
         grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
         for row_date, shop_id, value in rows:
             if isinstance(row_date, date) and value is not None:
-                grouped[str(shop_id)].append(
-                    {"date": row_date, metric: float(value)}
-                )
+                grouped[str(shop_id)].append({"date": row_date, metric: float(value)})
         return dict(grouped)
 
     def _attribute_event(
@@ -330,12 +331,8 @@ class AttributionRunner:
         if "captured_product_paid_amount" not in evidence:
             missing.append("同店同日商品贡献证据不可用。")
 
-        current = {
-            metric: item.current_value for metric, item in evidence.items()
-        }
-        baseline = {
-            metric: item.baseline_value for metric, item in evidence.items()
-        }
+        current = {metric: item.current_value for metric, item in evidence.items()}
+        baseline = {metric: item.baseline_value for metric, item in evidence.items()}
         decomposition = (
             decompose_paid_amount(current=current, baseline=baseline)
             if event.metric == "paid_amount"
@@ -386,19 +383,11 @@ class AttributionRunner:
         history = [row for row in rows if row["date"] < event.date][-14:]
         for metric in metrics:
             current_value = current_row.get(metric)
-            baseline_values = [
-                float(row[metric])
-                for row in history
-                if row.get(metric) is not None
-            ]
+            baseline_values = [float(row[metric]) for row in history if row.get(metric) is not None]
             if current_value is None or not baseline_values:
                 continue
             baseline_value = float(median(baseline_values))
-            change_rate = (
-                float(current_value) / baseline_value - 1
-                if baseline_value != 0
-                else None
-            )
+            change_rate = float(current_value) / baseline_value - 1 if baseline_value != 0 else None
             quality_flags: list[str] = []
             if len(baseline_values) < 7:
                 quality_flags.append("short_baseline")

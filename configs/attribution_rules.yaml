@@ -1,4 +1,19 @@
 version: 1
+thresholds:
+  # Relative changes are expressed as positive magnitudes: 0.15 means +/-15%.
+  decline_rate: 0.15
+  increase_rate: 0.15
+  stable_rate: 0.12
+  refund_rate_increase: 0.20
+  ad_spend_increase: 0.20
+  inventory_available_decline: 0.50
+  commission_rate_increase: 0.20
+  settlement_ratio_decline: 0.08
+  days_of_supply_increase: 0.50
+evidence_score:
+  contradiction_penalty_per_item: 0.15
+  contradiction_penalty_cap: 0.60
+  missing_adjustment_source_reliability: 0.85
 rules:
   - rule_id: R001
     cause_code: traffic_decline
@@ -93,4 +108,3 @@ rules:
     supporting_evidence: [days_of_supply, available_qty, sales_7d]
     counter_evidence: []
     explanation_template: 预计可售天数显著增加，并伴随库存增加或近7日销量下降。
-

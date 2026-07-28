@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ecom_insight.attribution import EvidenceItem
+from ecom_insight.attribution import AttributionRulesConfig, EvidenceItem
 from ecom_insight.attribution.rules import AttributionRuleEngine
 
 
@@ -74,10 +74,27 @@ def test_paid_amount_increase_does_not_emit_decline_causes() -> None:
             "ad_spend": _evidence("ad_spend", 0.30),
             "roas": _evidence("roas", -0.30),
             "available_qty": _evidence("available_qty", -0.80),
-            "core_product_paid_amount": _evidence(
-                "core_product_paid_amount", -0.30
-            ),
+            "core_product_paid_amount": _evidence("core_product_paid_amount", -0.30),
         },
     )
 
     assert candidates == []
+
+
+def test_rule_thresholds_are_loaded_from_validated_configuration() -> None:
+    config = AttributionRulesConfig.model_validate(
+        {
+            "thresholds": {"decline_rate": 0.40},
+            "evidence_score": {},
+            "rules": [],
+        }
+    )
+    candidates = AttributionRuleEngine(config).evaluate(
+        target_metric="paid_amount",
+        evidence={
+            "paid_amount": _evidence("paid_amount", -0.30),
+            "exposure_users": _evidence("exposure_users", -0.30),
+        },
+    )
+
+    assert all(candidate.rule_id != "R001" for candidate in candidates)
