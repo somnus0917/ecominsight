@@ -1,23 +1,24 @@
-schema_version: "1"
-
-# All values preserve the Phase 4 baseline used by the documented experiments.
-fixed_threshold:
-  window: 14
-  relative_threshold: 0.25
-
-rolling_zscore:
-  window: 14
-  z_threshold: 3.0
-  minimum_scale: 1.0e-9
-
-rolling_mad:
-  window: 14
-  z_threshold: 3.5
-  minimum_scale: 1.0e-9
-
-isolation_forest:
-  window: 42
-  minimum_history: 28
-  contamination: 0.05
-  random_state: 20260727
-  estimators: 100
+schema_version: "2"
+detectors:
+  fixed_threshold: {window: 14}
+  rolling_zscore: {window: 14, z_threshold: 3.0, minimum_scale: 1.0e-9}
+  rolling_mad: {window: 14, z_threshold: 3.5, minimum_scale: 1.0e-9}
+  isolation_forest: {window: 42, minimum_history: 28, contamination: 0.05, estimators: 100, random_state: 20260727}
+metrics:
+  paid_amount: {enabled: true, enabled_detectors: [fixed_threshold, rolling_zscore, rolling_mad, isolation_forest], fixed_threshold: {relative_decline: 0.25, relative_increase: 0.30}, minimum_history: 14}
+  exposure_users: {enabled: true, enabled_detectors: [fixed_threshold, rolling_mad], fixed_threshold: {relative_decline: 0.25, relative_increase: 0.35}, minimum_history: 14}
+  exposure_click_rate: {enabled: true, enabled_detectors: [fixed_threshold, rolling_mad], fixed_threshold: {percentage_point_decline: 0.03, relative_decline: 0.20}, minimum_history: 14}
+  click_conversion_rate: {enabled: true, enabled_detectors: [fixed_threshold, rolling_mad], fixed_threshold: {percentage_point_decline: 0.03, relative_decline: 0.20}, minimum_history: 14}
+  refund_rate_by_pay_time: {enabled: true, enabled_detectors: [fixed_threshold, rolling_mad], fixed_threshold: {absolute_high: 0.08, percentage_point_increase: 0.03, relative_increase: 0.25}, minimum_history: 7}
+  ad_spend: {enabled: true, enabled_detectors: [fixed_threshold, rolling_mad], fixed_threshold: {relative_increase: 0.30}, minimum_history: 14}
+  settlement_amount_by_pay_time: {enabled: true, enabled_detectors: [fixed_threshold, rolling_mad], fixed_threshold: {relative_decline: 0.20}, minimum_history: 14}
+aggregation:
+  policy: weighted
+  detector_weights: {fixed_threshold: 1.0, rolling_zscore: 0.8, rolling_mad: 1.0, isolation_forest: 0.6}
+  consensus_min_detectors: 2
+  weighted_trigger_threshold: 1.6
+recovery:
+  enabled: true
+  resolved_after_normal_points: 2
+  maximum_gap_days: 3
+  direction_reversal_required: false

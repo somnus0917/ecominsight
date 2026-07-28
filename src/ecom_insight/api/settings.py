@@ -17,7 +17,7 @@ class ApiSettings(BaseSettings):
 
     database_path: Path = Path("data/processed/ecom_insight.duckdb")
     feedback_database_path: Path = Path("data/processed/feedback.sqlite")
-    data_mode: Literal["real", "demo"] = "demo"
+    data_mode: Literal["real", "demo"] = "real"
     allowed_origins: list[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
@@ -27,4 +27,3 @@ class ApiSettings(BaseSettings):
     @classmethod
     def resolve_path(cls, value: Path) -> Path:
         return value.expanduser().resolve()
-

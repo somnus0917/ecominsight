@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import duckdb
 import structlog
@@ -36,15 +36,17 @@ class ReportRunner:
         database_path: Path,
         artifact_root: Path,
         generator: EvidenceReportGenerator | None = None,
+        data_origin: Literal["real", "demo"] = "real",
     ) -> None:
         self.database_path = database_path.resolve()
         self.artifact_root = artifact_root.resolve()
         self.generator = generator or DeterministicEvidenceReportGenerator()
+        self.data_origin = data_origin
         self.validator = ReportValidator()
 
     def run(self, *, limit: int | None = None) -> ReportRunResult:
         service = AttributionEvidenceService(self.database_path)
-        attribution_ids = service.list_attribution_ids(limit=limit)
+        attribution_ids = service.list_attribution_ids(limit=limit, data_origin=self.data_origin)
         rows: list[tuple[Any, ...]] = []
         claim_count = 0
         unsupported_count = 0
@@ -66,9 +68,7 @@ class ReportRunner:
                     validation.valid,
                     validation.claim_count,
                     validation.unsupported_claim_count,
-                    json.dumps(
-                        validation.model_dump(mode="json"), ensure_ascii=False
-                    ),
+                    json.dumps(validation.model_dump(mode="json"), ensure_ascii=False),
                     bundle.data_origin,
                 )
             )
@@ -76,16 +76,13 @@ class ReportRunner:
             self._publish(connection, rows)
         payload = {
             "schema_version": "1",
+            "data_origin": self.data_origin,
             "report_count": len(rows),
             "claim_count": claim_count,
             "unsupported_claim_count": unsupported_count,
-            "unsupported_claim_rate": (
-                unsupported_count / claim_count if claim_count else 0
-            ),
+            "unsupported_claim_rate": (unsupported_count / claim_count if claim_count else 0),
             "generator": self.generator.generator_name,
-            "external_api_used": self.generator.generator_name.startswith(
-                "structured_llm:"
-            ),
+            "external_api_used": self.generator.generator_name.startswith("structured_llm:"),
             "validation_policy": [
                 "所有事实和候选原因必须引用当前证据包中的evidence_id。",
                 "历史案例引用必须来自当前检索结果。",
@@ -139,4 +136,3 @@ class ReportRunner:
                 "INSERT INTO fact_attribution_report VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 rows,
             )
-

@@ -129,7 +129,7 @@ export function AnomalyDetailPage({ attributionId }: { attributionId: string }) 
                 <div className="cause-row" key={`${cause.cause}-${cause.status}`}>
                   <StatusBadge value={cause.status} />
                   <p>{cause.cause}</p>
-                  <strong>{percent(cause.confidence)}</strong>
+                  <strong>证据评分：{cause.evidence_score.toFixed(2)}</strong>
                 </div>
               ))}
             </div>

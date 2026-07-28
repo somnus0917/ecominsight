@@ -41,6 +41,8 @@ class DetectionPoint:
     anomaly_score: float
     is_anomaly: bool
     history_size: int
+    trigger_type: str | None = None
+    trigger_threshold: float | None = None
 
 
 class AnomalyRecord(BaseModel):

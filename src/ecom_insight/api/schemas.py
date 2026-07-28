@@ -17,7 +17,8 @@ class HealthResponse(ApiModel):
     database_exists: bool
     feedback_store_ready: bool
     data_updated_at: date | None
-    data_mode: Literal["real", "demo"] = "demo"
+    data_mode: Literal["real", "demo"] = "real"
+    database_origin_valid: bool
 
 
 class KpiValue(ApiModel):
@@ -66,9 +67,7 @@ class FeedbackCreate(ApiModel):
             return None
         matches = PrivacySanitizer.sensitive_matches(value)
         if matches:
-            raise ValueError(
-                f"Feedback contains prohibited sensitive pattern(s): {matches}"
-            )
+            raise ValueError(f"Feedback contains prohibited sensitive pattern(s): {matches}")
         return value.strip() or None
 
 
@@ -80,4 +79,3 @@ class FeedbackRecord(ApiModel):
     notes: str | None
     reviewer_alias: str | None
     created_at: datetime
-

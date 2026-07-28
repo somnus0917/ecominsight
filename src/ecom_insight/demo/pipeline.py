@@ -98,6 +98,7 @@ class DemoPipeline:
             anomaly_result = AnomalyRunner(
                 database_path=self.database_path,
                 artifact_root=self.artifact_root,
+                data_origin="demo",
             ).run()
             steps.append("run_anomaly")
 
@@ -105,6 +106,7 @@ class DemoPipeline:
                 database_path=self.database_path,
                 artifact_root=self.artifact_root,
                 config_path=self.rules_config,
+                data_origin="demo",
             ).run()
             steps.append("run_attribution")
 
@@ -114,12 +116,14 @@ class DemoPipeline:
                 rule_config_path=self.rules_config,
                 demo_root=self.demo_data_root,
                 artifact_root=self.artifact_root,
+                data_origin="demo",
             ).run()
             steps.append("build_knowledge")
 
             report_result = ReportRunner(
                 database_path=self.database_path,
                 artifact_root=self.artifact_root,
+                data_origin="demo",
             ).run()
             steps.append("generate_reports")
 
@@ -147,7 +151,9 @@ class DemoPipeline:
             steps.append("write_summary")
 
         except Exception as exc:
-            LOGGER.error("demo_pipeline_failed", error=str(exc), step=steps[-1] if steps else "init")
+            LOGGER.error(
+                "demo_pipeline_failed", error=str(exc), step=steps[-1] if steps else "init"
+            )
             errors.append(f"{steps[-1] if steps else 'init'}: {exc}")
             return DemoBuildResult(
                 database_path=self.database_path,
@@ -181,17 +187,20 @@ class DemoPipeline:
         report_result: Any,
         steps: list[str],
     ) -> None:
-        manifest = json.loads(
-            (self.demo_data_root / "manifest.json").read_text(encoding="utf-8")
-        )
+        manifest = json.loads((self.demo_data_root / "manifest.json").read_text(encoding="utf-8"))
         summary: dict[str, Any] = {
             "build_version": BUILD_VERSION,
             "synthetic": True,
+            "data_origin": "demo",
             "built_at": datetime.now(UTC).isoformat(),
             "random_seed": manifest.get("seed"),
             "date_range": manifest.get("date_range"),
             "shop_count": len(
-                {row.get("shop_id") for row in _load_json_safe(self.demo_data_root / "shop_daily.json") if row.get("shop_id")}
+                {
+                    row.get("shop_id")
+                    for row in _load_json_safe(self.demo_data_root / "shop_daily.json")
+                    if row.get("shop_id")
+                }
             ),
             "product_count": wh_result.table_counts.get("fact_product_daily", 0),
             "scenario_count": manifest.get("scenario_count", 0),

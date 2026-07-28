@@ -63,7 +63,7 @@ class DeterministicEvidenceReportGenerator:
                 ),
                 evidence_ids=[item.evidence_id],
                 source=item.source_table,
-                confidence=1.0,
+                evidence_score=1.0,
             )
             for item in ranked_evidence[:5]
         ]
@@ -76,25 +76,18 @@ class DeterministicEvidenceReportGenerator:
         causes: list[ReportCause] = []
         for candidate in bundle.candidates[:3]:
             cause_status: ReportCauseStatus = (
-                "supported_inference"
-                if candidate.status == "confirmed_fact"
-                else candidate.status
+                "supported_inference" if candidate.status == "confirmed_fact" else candidate.status
             )
             causes.append(
                 ReportCause(
                     cause=(
-                        f"{candidate.cause}是有数据支持的候选解释, "
-                        "但当前证据只支持统计关联."
+                        f"{candidate.cause}是有数据支持的候选解释, 但当前证据只支持统计关联."
                         if cause_status == "supported_inference"
                         else candidate.cause
                     ),
-                    evidence_ids=[
-                        item.evidence_id for item in candidate.supporting_evidence
-                    ],
-                    historical_document_ids=retrieved_by_cause.get(
-                        candidate.cause_code, []
-                    ),
-                    confidence=candidate.confidence,
+                    evidence_ids=[item.evidence_id for item in candidate.supporting_evidence],
+                    historical_document_ids=retrieved_by_cause.get(candidate.cause_code, []),
+                    evidence_score=candidate.evidence_score,
                     status=cause_status,
                 )
             )
@@ -166,7 +159,5 @@ def generate_and_validate(
     report = generator.generate(bundle)
     validation = validator.validate(report=report, bundle=bundle)
     if not validation.valid:
-        raise ValueError(
-            f"Generated report failed validation: {validation.errors}"
-        )
+        raise ValueError(f"Generated report failed validation: {validation.errors}")
     return report, validation

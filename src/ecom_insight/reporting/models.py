@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from ecom_insight.attribution import (
     AttributionCandidate,
@@ -15,6 +15,21 @@ from ecom_insight.retrieval import RetrievalHit
 
 class ReportingModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+
+EvidenceLevel = Literal["high", "medium", "low", "insufficient"]
+EvidenceStatus = Literal["supported", "partial", "insufficient_data"]
+
+
+def evidence_level_from_score(score: float, status: EvidenceStatus) -> EvidenceLevel:
+    """Translate a deterministic evidence score into presentation language."""
+    if status == "insufficient_data":
+        return "insufficient"
+    if score >= 0.75:
+        return "high"
+    if score >= 0.45:
+        return "medium"
+    return "low"
 
 
 class EvidenceBundle(ReportingModel):
@@ -38,7 +53,9 @@ class ReportFact(ReportingModel):
     fact: str
     evidence_ids: list[str] = Field(min_length=1)
     source: str
-    confidence: float = Field(ge=0, le=1)
+    evidence_score: float = Field(
+        ge=0, le=1, validation_alias=AliasChoices("evidence_score", "confidence")
+    )
     status: Literal["confirmed_fact"] = "confirmed_fact"
 
 
@@ -53,7 +70,9 @@ class ReportCause(ReportingModel):
     cause: str
     evidence_ids: list[str]
     historical_document_ids: list[str] = Field(default_factory=list)
-    confidence: float = Field(ge=0, le=1)
+    evidence_score: float = Field(
+        ge=0, le=1, validation_alias=AliasChoices("evidence_score", "confidence")
+    )
     status: ReportCauseStatus
 
 

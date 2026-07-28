@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import duckdb
 
@@ -34,28 +34,25 @@ class AttributionEvidenceService:
 
     def __init__(self, database_path: Path) -> None:
         self.database_path = database_path.resolve()
-        self.knowledge_index = DuckDBKnowledgeRepository(
-            database_path=self.database_path
-        ).load()
+        self.knowledge_index = DuckDBKnowledgeRepository(database_path=self.database_path).load()
 
-    def list_attribution_ids(self, *, limit: int | None = None) -> list[str]:
+    def list_attribution_ids(
+        self, *, limit: int | None = None, data_origin: Literal["real", "demo"] = "real"
+    ) -> list[str]:
         query = """
             SELECT DISTINCT attribution_id
             FROM fact_attribution
-            WHERE data_origin = 'real'
+            WHERE data_origin = ?
             ORDER BY attribution_id
         """
-        parameters: list[int] = []
+        parameters: list[object] = [data_origin]
         if limit is not None:
             if limit < 1:
                 raise ValueError("Attribution limit must be positive")
             query += " LIMIT ?"
             parameters.append(limit)
         with duckdb.connect(str(self.database_path), read_only=True) as connection:
-            return [
-                str(row[0])
-                for row in connection.execute(query, parameters).fetchall()
-            ]
+            return [str(row[0]) for row in connection.execute(query, parameters).fetchall()]
 
     def get_bundle(self, attribution_id: str) -> EvidenceBundle:
         if not ATTRIBUTION_ID_PATTERN.fullmatch(attribution_id):
@@ -127,9 +124,7 @@ class AttributionEvidenceService:
                 quality_flags=[str(value) for value in _json_list(row[11])],
             )
             evidence_by_id[item.evidence_id] = item
-            evidence_by_rule_role.setdefault((str(row[0]), str(row[1])), []).append(
-                item
-            )
+            evidence_by_rule_role.setdefault((str(row[0]), str(row[1])), []).append(item)
 
         first = candidate_rows[0]
         candidates: list[AttributionCandidate] = []
@@ -145,15 +140,9 @@ class AttributionEvidenceService:
                     cause=str(row[9]),
                     status=str(row[10]),  # type: ignore[arg-type]
                     evidence_score=float(row[11]),
-                    evidence_score_breakdown=ConfidenceBreakdown.model_validate_json(
-                        str(row[12])
-                    ),
-                    supporting_evidence=evidence_by_rule_role.get(
-                        (rule_id, "supporting"), []
-                    ),
-                    counter_evidence=evidence_by_rule_role.get(
-                        (rule_id, "counter"), []
-                    ),
+                    evidence_score_breakdown=ConfidenceBreakdown.model_validate_json(str(row[12])),
+                    supporting_evidence=evidence_by_rule_role.get((rule_id, "supporting"), []),
+                    counter_evidence=evidence_by_rule_role.get((rule_id, "counter"), []),
                     missing_information=missing,
                     explanation=str(row[13]),
                 )

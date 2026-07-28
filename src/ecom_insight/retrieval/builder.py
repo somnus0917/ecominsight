@@ -4,7 +4,7 @@ import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import duckdb
 import structlog
@@ -65,6 +65,7 @@ class KnowledgeBuilder:
         demo_root: Path,
         artifact_root: Path,
         embedding_provider: EmbeddingProvider | None = None,
+        data_origin: Literal["real", "demo"] = "real",
     ) -> None:
         self.database_path = database_path.resolve()
         self.metric_config_path = metric_config_path.resolve()
@@ -72,6 +73,7 @@ class KnowledgeBuilder:
         self.demo_root = demo_root.resolve()
         self.artifact_root = artifact_root.resolve()
         self.embedding_provider = embedding_provider or LocalHashingEmbeddingProvider()
+        self.data_origin = data_origin
 
     def run(self) -> KnowledgeBuildResult:
         if not self.database_path.is_file():
@@ -86,11 +88,10 @@ class KnowledgeBuilder:
             self._publish(connection, index)
         type_counts: dict[str, int] = {}
         for document in documents:
-            type_counts[document.document_type] = (
-                type_counts.get(document.document_type, 0) + 1
-            )
+            type_counts[document.document_type] = type_counts.get(document.document_type, 0) + 1
         payload = {
             "schema_version": "1",
+            "data_origin": self.data_origin,
             "document_count": len(documents),
             "document_type_counts": type_counts,
             "embedding_model": self.embedding_provider.model_name,
@@ -204,8 +205,8 @@ class KnowledgeBuilder:
             )
         return documents
 
-    @staticmethod
     def _publish(
+        self,
         connection: duckdb.DuckDBPyConnection,
         index: KnowledgeIndex,
     ) -> None:
@@ -225,6 +226,7 @@ class KnowledgeBuilder:
                 cause_code VARCHAR,
                 source_ref VARCHAR NOT NULL,
                 tags_json JSON NOT NULL
+                ,data_origin VARCHAR NOT NULL
             )
             """
         )
@@ -239,7 +241,7 @@ class KnowledgeBuilder:
             """
         )
         connection.executemany(
-            "INSERT INTO dim_knowledge_document VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO dim_knowledge_document VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
                 (
                     document.document_id,
@@ -255,6 +257,7 @@ class KnowledgeBuilder:
                     document.cause_code,
                     document.source_ref,
                     json.dumps(document.tags, ensure_ascii=False),
+                    self.data_origin,
                 )
                 for document in index.documents
             ],
@@ -268,8 +271,6 @@ class KnowledgeBuilder:
                     index.embedding_provider.dimensions,
                     vector,
                 )
-                for document, vector in zip(
-                    index.documents, index.vectors, strict=True
-                )
+                for document, vector in zip(index.documents, index.vectors, strict=True)
             ],
         )

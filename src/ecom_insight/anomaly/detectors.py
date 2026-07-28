@@ -7,7 +7,7 @@ from statistics import fmean, median, pstdev
 import numpy as np
 from sklearn.ensemble import IsolationForest
 
-from ecom_insight.anomaly.config import AnomalyConfig
+from ecom_insight.anomaly.config import AnomalyConfig, MetricFixedThresholdConfig
 from ecom_insight.anomaly.models import DetectionPoint, MetricSeries
 
 
@@ -31,11 +31,15 @@ class FixedThresholdDetector(BaseDetector):
         self,
         *,
         window: int = 14,
-        relative_threshold: float = 0.25,
+        thresholds: MetricFixedThresholdConfig | None = None,
+        relative_threshold: float | None = None,
     ) -> None:
         self.window = window
         self.minimum_history = window
-        self.relative_threshold = relative_threshold
+        self.thresholds = thresholds or MetricFixedThresholdConfig(
+            relative_decline=relative_threshold or 0.25,
+            relative_increase=relative_threshold or 0.25,
+        )
 
     def detect(self, series: MetricSeries) -> list[DetectionPoint]:
         results: list[DetectionPoint] = []
@@ -44,7 +48,50 @@ class FixedThresholdDetector(BaseDetector):
             baseline = median(history)
             current = series.points[index]
             change = _change_rate(current.value, baseline)
-            score = abs(change) if change is not None else 0.0
+            triggered: tuple[str, float] | None = None
+            tests = (
+                (
+                    "relative_decline",
+                    change is not None
+                    and change <= -float(self.thresholds.relative_decline or float("inf")),
+                    self.thresholds.relative_decline,
+                ),
+                (
+                    "relative_increase",
+                    change is not None
+                    and change >= float(self.thresholds.relative_increase or float("inf")),
+                    self.thresholds.relative_increase,
+                ),
+                (
+                    "percentage_point_decline",
+                    current.value - baseline
+                    <= -float(self.thresholds.percentage_point_decline or float("inf")),
+                    self.thresholds.percentage_point_decline,
+                ),
+                (
+                    "percentage_point_increase",
+                    current.value - baseline
+                    >= float(self.thresholds.percentage_point_increase or float("inf")),
+                    self.thresholds.percentage_point_increase,
+                ),
+                (
+                    "absolute_high",
+                    self.thresholds.absolute_high is not None
+                    and current.value >= self.thresholds.absolute_high,
+                    self.thresholds.absolute_high,
+                ),
+                (
+                    "absolute_low",
+                    self.thresholds.absolute_low is not None
+                    and current.value <= self.thresholds.absolute_low,
+                    self.thresholds.absolute_low,
+                ),
+            )
+            for name, passed, threshold in tests:
+                if passed and threshold is not None:
+                    triggered = (name, float(threshold))
+                    break
+            score = abs(change) if change is not None else abs(current.value - baseline)
             results.append(
                 DetectionPoint(
                     date=current.date,
@@ -52,8 +99,10 @@ class FixedThresholdDetector(BaseDetector):
                     baseline_value=baseline,
                     change_rate=change,
                     anomaly_score=score,
-                    is_anomaly=score >= self.relative_threshold,
+                    is_anomaly=triggered is not None,
                     history_size=len(history),
+                    trigger_type=triggered[0] if triggered else None,
+                    trigger_threshold=triggered[1] if triggered else None,
                 )
             )
         return results
@@ -213,28 +262,76 @@ class IsolationForestDetector(BaseDetector):
         return results
 
 
+def build_detectors_for_metric(metric_code: str, config: AnomalyConfig) -> tuple[BaseDetector, ...]:
+    metric = config.metrics.get(metric_code)
+    if metric is None or not metric.enabled:
+        return ()
+    active = config.detectors
+    built: list[BaseDetector] = []
+    for name in metric.enabled_detectors:
+        if name == "fixed_threshold":
+            assert metric.fixed_threshold is not None
+            built.append(
+                FixedThresholdDetector(
+                    window=active.fixed_threshold.window, thresholds=metric.fixed_threshold
+                )
+            )
+        elif name == "rolling_zscore":
+            built.append(
+                RollingZScoreDetector(
+                    window=active.rolling_zscore.window,
+                    z_threshold=active.rolling_zscore.z_threshold,
+                    minimum_scale=active.rolling_zscore.minimum_scale,
+                )
+            )
+        elif name == "rolling_mad":
+            built.append(
+                RollingMADDetector(
+                    window=active.rolling_mad.window,
+                    z_threshold=active.rolling_mad.z_threshold,
+                    minimum_scale=active.rolling_mad.minimum_scale,
+                )
+            )
+        else:
+            built.append(
+                IsolationForestDetector(
+                    window=active.isolation_forest.window,
+                    minimum_history=max(
+                        metric.minimum_history, active.isolation_forest.minimum_history
+                    ),
+                    contamination=active.isolation_forest.contamination,
+                    random_state=active.isolation_forest.random_state,
+                    estimators=active.isolation_forest.estimators,
+                )
+            )
+    return tuple(built)
+
+
 def default_detectors(config: AnomalyConfig | None = None) -> tuple[BaseDetector, ...]:
+    """Compatibility helper; new runners build detectors separately per metric."""
     active = config or AnomalyConfig()
+    if active.metrics:
+        return build_detectors_for_metric(next(iter(active.metrics)), active)
     return (
         FixedThresholdDetector(
-            window=active.fixed_threshold.window,
-            relative_threshold=active.fixed_threshold.relative_threshold,
+            window=14,
+            thresholds=MetricFixedThresholdConfig(relative_decline=0.25, relative_increase=0.25),
         ),
         RollingZScoreDetector(
-            window=active.rolling_zscore.window,
-            z_threshold=active.rolling_zscore.z_threshold,
-            minimum_scale=active.rolling_zscore.minimum_scale,
+            window=active.detectors.rolling_zscore.window,
+            z_threshold=active.detectors.rolling_zscore.z_threshold,
+            minimum_scale=active.detectors.rolling_zscore.minimum_scale,
         ),
         RollingMADDetector(
-            window=active.rolling_mad.window,
-            z_threshold=active.rolling_mad.z_threshold,
-            minimum_scale=active.rolling_mad.minimum_scale,
+            window=active.detectors.rolling_mad.window,
+            z_threshold=active.detectors.rolling_mad.z_threshold,
+            minimum_scale=active.detectors.rolling_mad.minimum_scale,
         ),
         IsolationForestDetector(
-            window=active.isolation_forest.window,
-            minimum_history=active.isolation_forest.minimum_history,
-            contamination=active.isolation_forest.contamination,
-            random_state=active.isolation_forest.random_state,
-            estimators=active.isolation_forest.estimators,
+            window=active.detectors.isolation_forest.window,
+            minimum_history=active.detectors.isolation_forest.minimum_history,
+            contamination=active.detectors.isolation_forest.contamination,
+            random_state=active.detectors.isolation_forest.random_state,
+            estimators=active.detectors.isolation_forest.estimators,
         ),
     )

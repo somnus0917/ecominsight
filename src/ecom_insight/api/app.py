@@ -15,6 +15,7 @@ from ecom_insight.api.schemas import (
     PaginatedResponse,
 )
 from ecom_insight.api.settings import ApiSettings
+from ecom_insight.api.validation import validate_database_data_mode
 
 
 def _validate_date_range(date_from: date | None, date_to: date | None) -> None:
@@ -24,6 +25,7 @@ def _validate_date_range(date_from: date | None, date_to: date | None) -> None:
 
 def create_app(settings: ApiSettings | None = None) -> FastAPI:
     active_settings = settings or ApiSettings()
+    validate_database_data_mode(active_settings.database_path, active_settings.data_mode)
     repository = AnalyticsRepository(active_settings.database_path)
     feedback_store = FeedbackStore(active_settings.feedback_database_path)
     app = FastAPI(
@@ -49,6 +51,7 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
             feedback_store_ready=feedback_store.ready(),
             data_updated_at=updated,
             data_mode=active_settings.data_mode,
+            database_origin_valid=True,
         )
 
     @app.get("/api/overview", response_model=OverviewResponse)
@@ -175,4 +178,3 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
 
 
 app = create_app()
-

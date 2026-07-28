@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 from statistics import median
-from typing import Any
+from typing import Any, Literal
 
 import duckdb
 import structlog
@@ -87,10 +87,12 @@ class AttributionRunner:
         artifact_root: Path,
         config_path: Path | None = Path("configs/attribution_rules.yaml"),
         rule_engine: AttributionRuleEngine | None = None,
+        data_origin: Literal["real", "demo"] = "real",
     ) -> None:
         self.database_path = database_path.resolve()
         self.artifact_root = artifact_root.resolve()
         self.config_path = config_path.resolve() if config_path is not None else None
+        self.data_origin = data_origin
         self.rule_engine = rule_engine or AttributionRuleEngine(
             AttributionRulesConfig.load(self.config_path) if self.config_path is not None else None
         )
@@ -101,7 +103,7 @@ class AttributionRunner:
         self.artifact_root.mkdir(parents=True, exist_ok=True)
         with duckdb.connect(str(self.database_path)) as connection:
             self._require_tables(connection)
-            events = self._load_events(connection)
+            events = self._load_events(connection, self.data_origin)
             shop_rows = self._load_shop_rows(connection)
             channel_rows = self._load_optional_daily_metric(
                 connection,
@@ -133,7 +135,7 @@ class AttributionRunner:
         rule_counts = dict(Counter(candidate.rule_id for candidate in candidates))
         payload = {
             "schema_version": "1",
-            "data_origin": "real",
+            "data_origin": self.data_origin,
             "rule_config_path": str(self.config_path) if self.config_path else None,
             "rule_config_version": self.rule_engine.config.version,
             "event_grain": "entity x date x metric",
@@ -178,18 +180,27 @@ class AttributionRunner:
                 """
                 SELECT table_name
                 FROM information_schema.tables
-                WHERE table_name IN ('fact_anomaly', 'mart_shop_performance_daily')
+                WHERE table_name IN ('fact_anomaly_event', 'mart_shop_performance_daily')
                 """
             ).fetchall()
         }
-        missing = {"fact_anomaly", "mart_shop_performance_daily"} - present
+        missing = {"mart_shop_performance_daily"} - present
         if missing:
             raise ValueError(
                 f"Run Phase 3 and Phase 4 before attribution; missing: {sorted(missing)}"
             )
 
     @staticmethod
-    def _load_events(connection: duckdb.DuckDBPyConnection) -> list[AnomalyEvent]:
+    def _load_events(
+        connection: duckdb.DuckDBPyConnection,
+        data_origin: Literal["real", "demo"],
+    ) -> list[AnomalyEvent]:
+        event_table = connection.execute(
+            "SELECT count(*) FROM information_schema.tables WHERE table_name = 'fact_anomaly_event'"
+        ).fetchone()
+        if event_table is None or not event_table[0]:
+            LOGGER.warning("attribution_legacy_anomaly_fallback", data_origin=data_origin)
+            return AttributionRunner._load_legacy_events(connection, data_origin)
         rows = connection.execute(
             """
             SELECT
@@ -197,18 +208,14 @@ class AttributionRunner:
                 entity_id,
                 date,
                 metric,
-                string_agg(DISTINCT detector, ',' ORDER BY detector) AS detectors,
-                max(anomaly_score) AS anomaly_score,
-                CASE
-                    WHEN count(*) FILTER (WHERE severity = 'high') > 0 THEN 'high'
-                    WHEN count(*) FILTER (WHERE severity = 'medium') > 0 THEN 'medium'
-                    ELSE 'low'
-                END AS severity
-            FROM fact_anomaly
-            WHERE data_origin = 'real'
-            GROUP BY entity_type, entity_id, date, metric
+                triggered_detectors_json AS detectors,
+                weighted_score AS anomaly_score,
+                severity
+            FROM fact_anomaly_event
+            WHERE data_origin = ?
             ORDER BY date, entity_id, metric
-            """
+            """,
+            [data_origin],
         ).fetchall()
         events: list[AnomalyEvent] = []
         for row in rows:
@@ -221,12 +228,28 @@ class AttributionRunner:
                     entity_id=str(row[1]),
                     date=event_date,
                     metric=str(row[3]),
-                    detector_names=tuple(str(row[4]).split(",")),
+                    detector_names=tuple(json.loads(str(row[4]))),
                     anomaly_score=float(row[5]),
                     severity=str(row[6]),
                 )
             )
         return events
+
+    @staticmethod
+    def _load_legacy_events(
+        connection: duckdb.DuckDBPyConnection, data_origin: Literal["real", "demo"]
+    ) -> list[AnomalyEvent]:
+        rows = connection.execute(
+            """
+            SELECT entity_type, entity_id, date, metric,
+                   string_agg(DISTINCT detector, ',' ORDER BY detector), max(anomaly_score),
+                   CASE WHEN count(*) FILTER (WHERE severity = 'high') > 0 THEN 'high'
+                   WHEN count(*) FILTER (WHERE severity = 'medium') > 0 THEN 'medium' ELSE 'low' END
+            FROM fact_anomaly WHERE data_origin = ?
+            GROUP BY entity_type, entity_id, date, metric ORDER BY date, entity_id, metric
+            """, [data_origin]
+        ).fetchall()
+        return [AnomalyEvent(str(row[0]), str(row[1]), row[2], str(row[3]), tuple(str(row[4]).split(",")), float(row[5]), str(row[6])) for row in rows if isinstance(row[2], date)]
 
     @staticmethod
     def _load_shop_rows(
@@ -363,7 +386,7 @@ class AttributionRunner:
             candidates=candidates,
             context_evidence=list(evidence.values()),
             missing_information=missing,
-            data_origin="real",
+            data_origin=self.data_origin,
         )
 
     @staticmethod
@@ -475,7 +498,8 @@ class AttributionRunner:
                 unit VARCHAR NOT NULL,
                 comparison_window VARCHAR NOT NULL,
                 evidence_status VARCHAR NOT NULL,
-                quality_flags_json JSON NOT NULL
+                quality_flags_json JSON NOT NULL,
+                data_origin VARCHAR NOT NULL
             )
             """
         )
@@ -536,6 +560,7 @@ class AttributionRunner:
                             item.comparison_window,
                             item.status,
                             json.dumps(item.quality_flags, ensure_ascii=False),
+                            result.data_origin,
                         )
                         for item in items
                     )
@@ -554,6 +579,7 @@ class AttributionRunner:
                     item.comparison_window,
                     item.status,
                     json.dumps(item.quality_flags, ensure_ascii=False),
+                    result.data_origin,
                 )
                 for item in result.context_evidence
                 if item.evidence_id not in used_evidence_ids
@@ -565,7 +591,7 @@ class AttributionRunner:
             )
         if evidence_rows:
             connection.executemany(
-                "INSERT INTO fact_attribution_evidence VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO fact_attribution_evidence VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 evidence_rows,
             )
         return len(evidence_rows)

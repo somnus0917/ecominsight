@@ -25,8 +25,15 @@ make preview-demo
 ```
 
 The command builds the synthetic warehouse, starts the API and frontend, then prints the local
-URLs. Press `Ctrl+C` to stop both services. If you prefer separate terminals, start the API with
-`uv run ecom-api` and the frontend with `npm --prefix frontend run dev`.
+URLs. Press `Ctrl+C` to stop both services. If you prefer separate terminals, load the demo
+configuration before starting the API:
+
+```bash
+set -a; source .env.demo; set +a
+uv run ecom-api --port 8010
+```
+
+Then run `ECOM_VITE_API_TARGET=http://127.0.0.1:8010 npm --prefix frontend run dev -- --port 5174`.
 
 Open `http://127.0.0.1:5174` — the UI displays a **Synthetic Demo** badge confirming
 no real business data is shown. API docs at `http://127.0.0.1:8010/docs`.
@@ -242,8 +249,8 @@ Compose 会只读挂载分析仓库，人工审核反馈写入独立 Docker volu
 uv run ecom-generate-demo-data
 ```
 
-输出位于 `data/demo/generated/`。当前前端默认读取上述真实流程构建的 DuckDB；演示数据到
-独立 DuckDB 的一键构建尚未封装。
+输出位于 `data/demo/generated/`。`uv run ecom-demo` 会生成完整的合成 DuckDB，并依次运行
+指标分析、异常检测、归因、知识构建和报告生成。
 
 详细的页面、接口与部署边界见 [Phase 7 应用与部署文档](docs/phase7_application.md)。
 

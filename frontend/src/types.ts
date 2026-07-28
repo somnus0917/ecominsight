@@ -55,7 +55,7 @@ export interface AnomalyDetail {
     confirmed_facts?: Array<{ fact: string; evidence_ids: string[] }>;
     possible_causes?: Array<{
       cause: string;
-      confidence: number;
+      evidence_score: number;
       status: string;
       evidence_ids: string[];
     }>;
