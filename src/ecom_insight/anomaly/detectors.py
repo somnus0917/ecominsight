@@ -7,6 +7,7 @@ from statistics import fmean, median, pstdev
 import numpy as np
 from sklearn.ensemble import IsolationForest
 
+from ecom_insight.anomaly.config import AnomalyConfig
 from ecom_insight.anomaly.models import DetectionPoint, MetricSeries
 
 
@@ -212,10 +213,28 @@ class IsolationForestDetector(BaseDetector):
         return results
 
 
-def default_detectors() -> tuple[BaseDetector, ...]:
+def default_detectors(config: AnomalyConfig | None = None) -> tuple[BaseDetector, ...]:
+    active = config or AnomalyConfig()
     return (
-        FixedThresholdDetector(),
-        RollingZScoreDetector(),
-        RollingMADDetector(),
-        IsolationForestDetector(),
+        FixedThresholdDetector(
+            window=active.fixed_threshold.window,
+            relative_threshold=active.fixed_threshold.relative_threshold,
+        ),
+        RollingZScoreDetector(
+            window=active.rolling_zscore.window,
+            z_threshold=active.rolling_zscore.z_threshold,
+            minimum_scale=active.rolling_zscore.minimum_scale,
+        ),
+        RollingMADDetector(
+            window=active.rolling_mad.window,
+            z_threshold=active.rolling_mad.z_threshold,
+            minimum_scale=active.rolling_mad.minimum_scale,
+        ),
+        IsolationForestDetector(
+            window=active.isolation_forest.window,
+            minimum_history=active.isolation_forest.minimum_history,
+            contamination=active.isolation_forest.contamination,
+            random_state=active.isolation_forest.random_state,
+            estimators=active.isolation_forest.estimators,
+        ),
     )

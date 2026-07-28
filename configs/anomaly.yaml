@@ -1,0 +1,23 @@
+schema_version: "1"
+
+# All values preserve the Phase 4 baseline used by the documented experiments.
+fixed_threshold:
+  window: 14
+  relative_threshold: 0.25
+
+rolling_zscore:
+  window: 14
+  z_threshold: 3.0
+  minimum_scale: 1.0e-9
+
+rolling_mad:
+  window: 14
+  z_threshold: 3.5
+  minimum_scale: 1.0e-9
+
+isolation_forest:
+  window: 42
+  minimum_history: 28
+  contamination: 0.05
+  random_state: 20260727
+  estimators: 100

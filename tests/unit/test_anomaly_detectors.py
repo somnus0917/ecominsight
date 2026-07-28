@@ -5,6 +5,7 @@ from datetime import date, timedelta
 import pytest
 
 from ecom_insight.anomaly import (
+    AnomalyConfig,
     FixedThresholdDetector,
     IsolationForestDetector,
     MetricSeries,
@@ -12,6 +13,7 @@ from ecom_insight.anomaly import (
     RollingZScoreDetector,
     TimeSeriesPoint,
 )
+from ecom_insight.anomaly.detectors import default_detectors
 
 
 def _series(*, anomaly_index: int = 35, anomaly_value: float = 40.0) -> MetricSeries:
@@ -75,3 +77,26 @@ def test_isolation_forest_does_not_flag_constant_series() -> None:
     )
     results = IsolationForestDetector(estimators=30).detect(series)
     assert not any(result.is_anomaly for result in results)
+
+
+def test_default_detectors_use_versioned_config() -> None:
+    config = AnomalyConfig.model_validate(
+        {
+            "fixed_threshold": {"window": 9, "relative_threshold": 0.4},
+            "rolling_zscore": {"window": 10, "z_threshold": 2.5},
+            "rolling_mad": {"window": 11, "z_threshold": 3.2},
+            "isolation_forest": {
+                "window": 20,
+                "minimum_history": 15,
+                "contamination": 0.1,
+                "estimators": 12,
+            },
+        }
+    )
+
+    fixed, zscore, mad, forest = default_detectors(config)
+
+    assert fixed.minimum_history == 9
+    assert zscore.minimum_history == 10
+    assert mad.minimum_history == 11
+    assert forest.minimum_history == 15

@@ -9,6 +9,7 @@ from pathlib import Path
 import duckdb
 import structlog
 
+from ecom_insight.anomaly.config import AnomalyConfig
 from ecom_insight.anomaly.detectors import BaseDetector, default_detectors
 from ecom_insight.anomaly.models import (
     AnomalyRecord,
@@ -48,10 +49,13 @@ class AnomalyRunner:
         database_path: Path,
         artifact_root: Path,
         detectors: tuple[BaseDetector, ...] | None = None,
+        config_path: Path | None = Path("configs/anomaly.yaml"),
     ) -> None:
         self.database_path = database_path.resolve()
         self.artifact_root = artifact_root.resolve()
-        self.detectors = detectors or default_detectors()
+        self.config_path = config_path.resolve() if config_path is not None else None
+        config = AnomalyConfig.load(self.config_path) if self.config_path else None
+        self.detectors = detectors or default_detectors(config)
 
     def run(self) -> AnomalyRunResult:
         if not self.database_path.is_file():
@@ -81,6 +85,7 @@ class AnomalyRunner:
                 for detector in self.detectors
             },
             "metrics": list(REAL_SHOP_METRICS),
+            "config_path": str(self.config_path) if self.config_path else None,
             "limitations": [
                 "Missing calendar dates are not imputed as zero.",
                 "Each metric and shop is scored independently.",

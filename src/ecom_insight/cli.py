@@ -143,11 +143,16 @@ def run_anomaly_command(
         Path,
         typer.Option(help="Local directory for anomaly summaries"),
     ] = Path("data/processed/artifacts"),
+    config: Annotated[
+        Path,
+        typer.Option(help="Versioned detector parameter YAML"),
+    ] = Path("configs/anomaly.yaml"),
 ) -> None:
     configure_logging()
     result = AnomalyRunner(
         database_path=database,
         artifact_root=artifact_root,
+        config_path=config,
     ).run()
     typer.echo(f"Series: {result.series_count}")
     typer.echo(f"Scored points: {result.scored_point_count}")
