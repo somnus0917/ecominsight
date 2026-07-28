@@ -28,8 +28,8 @@ The command builds the synthetic warehouse, starts the API and frontend, then pr
 URLs. Press `Ctrl+C` to stop both services. If you prefer separate terminals, start the API with
 `uv run ecom-api` and the frontend with `npm --prefix frontend run dev`.
 
-Open `http://127.0.0.1:5173` — the UI displays a **Synthetic Demo** badge confirming
-no real business data is shown. API docs at `http://127.0.0.1:8000/docs`.
+Open `http://127.0.0.1:5174` — the UI displays a **Synthetic Demo** badge confirming
+no real business data is shown. API docs at `http://127.0.0.1:8010/docs`.
 
 > Synthetic evaluation results are **not** real business accuracy. They verify rule
 > coverage, evidence integrity and schema constraints only.
