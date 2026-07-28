@@ -16,8 +16,8 @@ from ecom_insight.attribution.decomposition import decompose_paid_amount
 from ecom_insight.attribution.models import (
     AttributionCandidate,
     AttributionResult,
-    ConfidenceBreakdown,
     EvidenceItem,
+    EvidenceScoreBreakdown,
 )
 from ecom_insight.attribution.rules import AttributionRuleEngine
 
@@ -422,7 +422,7 @@ class AttributionRunner:
         evidence: dict[str, EvidenceItem],
         missing: list[str],
     ) -> AttributionCandidate:
-        breakdown = ConfidenceBreakdown(
+        breakdown = EvidenceScoreBreakdown(
             evidence_completeness=0,
             source_reliability=1,
             directional_consistency=0,
@@ -435,8 +435,8 @@ class AttributionRunner:
             cause_code="insufficient_evidence",
             cause="当前证据不足以形成归因候选",
             status="insufficient_data",
-            confidence=0,
-            confidence_breakdown=breakdown,
+            evidence_score=0,
+            evidence_score_breakdown=breakdown,
             supporting_evidence=[target] if target is not None else [],
             missing_information=missing or ["规则前置条件未满足。"],
             explanation="保留异常事实, 但不推测未被数据支持的业务原因.",
@@ -509,8 +509,8 @@ class AttributionRunner:
                         candidate.cause_code,
                         candidate.cause,
                         candidate.status,
-                        candidate.confidence,
-                        candidate.confidence_breakdown.model_dump_json(),
+                        candidate.evidence_score,
+                        candidate.evidence_score_breakdown.model_dump_json(),
                         candidate.explanation,
                         json.dumps(
                             [

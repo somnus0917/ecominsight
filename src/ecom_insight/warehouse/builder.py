@@ -226,6 +226,8 @@ class WarehouseBuilder:
                 )
             else:
                 expressions.append(f'"{quoted}"')
+        expressions.append("FALSE AS synthetic")
+        expressions.append("NULL AS scenario_id")
         select_list = ",\n".join(expressions)
         connection.execute(
             f'CREATE OR REPLACE TABLE "{fact_name}" AS SELECT {select_list} FROM "{staging_name}"'

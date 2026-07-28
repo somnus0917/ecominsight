@@ -17,6 +17,7 @@ class HealthResponse(ApiModel):
     database_exists: bool
     feedback_store_ready: bool
     data_updated_at: date | None
+    data_mode: Literal["real", "demo"] = "demo"
 
 
 class KpiValue(ApiModel):

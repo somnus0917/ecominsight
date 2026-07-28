@@ -57,7 +57,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             />
             {health.data?.status === "ok" ? "本地仓库在线" : "正在连接"}
           </div>
-          <small>更新至 {health.data?.data_updated_at ?? "—"}</small>
+          {health.data?.data_mode === "demo" && (
+            <div className="demo-badge" title="当前使用合成演示数据">
+              Synthetic Demo · 合成演示数据
+            </div>
+          )}
+          <small>更新至 {health.data?.data_updated_at ?? "-"}</small>
           <small>外部模型默认关闭</small>
         </div>
       </aside>

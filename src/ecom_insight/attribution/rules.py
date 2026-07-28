@@ -4,8 +4,8 @@ from collections.abc import Mapping, Sequence
 
 from ecom_insight.attribution.models import (
     AttributionCandidate,
-    ConfidenceBreakdown,
     EvidenceItem,
+    EvidenceScoreBreakdown,
 )
 
 DECLINE_THRESHOLD = -0.15
@@ -73,7 +73,7 @@ class AttributionRuleEngine:
     ) -> AttributionCandidate:
         completeness = min(len(support) / required_count, 1.0)
         consistency = len(support) / (len(support) + len(counter)) if support else 0.0
-        breakdown = ConfidenceBreakdown(
+        breakdown = EvidenceScoreBreakdown(
             evidence_completeness=completeness,
             source_reliability=source_reliability,
             directional_consistency=consistency,
@@ -85,8 +85,8 @@ class AttributionRuleEngine:
             cause_code=cause_code,
             cause=cause,
             status="supported_inference",
-            confidence=breakdown.score,
-            confidence_breakdown=breakdown,
+            evidence_score=breakdown.score,
+            evidence_score_breakdown=breakdown,
             supporting_evidence=support,
             counter_evidence=counter,
             missing_information=missing or [],

@@ -17,9 +17,9 @@
   {
     "scenario_id": "SYN_CTR_DROP",
     "target_metric": "exposure_click_rate",
-    "baseline_value": 0.058451,
-    "scenario_value": 0.033129,
-    "change_rate": -0.433226,
+    "baseline_value": 0.121359,
+    "scenario_value": 0.068807,
+    "change_rate": -0.433032,
     "expected_direction": "decrease",
     "passed": true,
     "supporting_metrics": {
@@ -30,9 +30,9 @@
   {
     "scenario_id": "SYN_CONVERSION_DROP",
     "target_metric": "click_conversion_rate",
-    "baseline_value": 0.054493,
-    "scenario_value": 0.028317,
-    "change_rate": -0.480343,
+    "baseline_value": 0.054494,
+    "scenario_value": 0.028452,
+    "change_rate": -0.47788,
     "expected_direction": "decrease",
     "passed": true,
     "supporting_metrics": {
@@ -69,9 +69,9 @@
   {
     "scenario_id": "SYN_OVERSTOCK",
     "target_metric": "days_of_supply",
-    "baseline_value": 17.538571,
-    "scenario_value": 70.17,
-    "change_rate": 3.000896,
+    "baseline_value": 17.522857,
+    "scenario_value": 70.085,
+    "change_rate": 2.999633,
     "expected_direction": "increase",
     "passed": true,
     "supporting_metrics": {
@@ -82,9 +82,9 @@
   {
     "scenario_id": "SYN_AD_WASTE",
     "target_metric": "ad_spend",
-    "baseline_value": 1465.040714,
-    "scenario_value": 3208.87,
-    "change_rate": 1.190294,
+    "baseline_value": 3042.845714,
+    "scenario_value": 6646.1025,
+    "change_rate": 1.184173,
     "expected_direction": "increase",
     "passed": true,
     "supporting_metrics": {
@@ -96,7 +96,7 @@
   {
     "scenario_id": "SYN_STOCKOUT",
     "target_metric": "available_qty",
-    "baseline_value": 588.857143,
+    "baseline_value": 1225.571429,
     "scenario_value": 0.0,
     "change_rate": -1.0,
     "expected_direction": "decrease",
@@ -104,8 +104,8 @@
     "supporting_metrics": {
       "baseline_days": 14,
       "scenario_days": 4,
-      "core_product_paid_amount_change_rate": -0.9165,
-      "shop_conversion_change_rate": -0.483095
+      "core_product_paid_amount_change_rate": -0.916515,
+      "shop_conversion_change_rate": -0.483191
     }
   },
   {
@@ -125,15 +125,15 @@
   {
     "scenario_id": "SYN_SETTLEMENT_DROP",
     "target_metric": "settlement_ratio",
-    "baseline_value": 0.872351,
-    "scenario_value": 0.590806,
-    "change_rate": -0.322743,
+    "baseline_value": 0.872352,
+    "scenario_value": 0.590807,
+    "change_rate": -0.322742,
     "expected_direction": "decrease",
     "passed": true,
     "supporting_metrics": {
       "baseline_days": 14,
       "scenario_days": 3,
-      "paid_amount_change_rate": 0.020988
+      "paid_amount_change_rate": 0.018424
     }
   }
 ]

@@ -6,6 +6,37 @@ EcomInsight is a portfolio-grade analytics project built from real multi-source 
 operations data. The system treats the language model as a report writer over verified evidence,
 not as a calculator or a source of causal claims.
 
+## 3-minute public demo
+
+No company data, no external API, no model keys required. All data is fully synthetic.
+
+```bash
+git clone https://github.com/somnus0917/ecominsight.git
+cd ecominsight
+
+uv sync --all-groups
+uv run ecom-demo
+```
+
+Start the API:
+
+```bash
+uv run ecom-api
+```
+
+In another terminal, start the frontend:
+
+```bash
+npm --prefix frontend ci
+npm --prefix frontend run dev
+```
+
+Open `http://127.0.0.1:5173` — the UI displays a **Synthetic Demo** badge confirming
+no real business data is shown. API docs at `http://127.0.0.1:8000/docs`.
+
+> Synthetic evaluation results are **not** real business accuracy. They verify rule
+> coverage, evidence integrity and schema constraints only.
+
 ## Current status
 
 - Phase 0 complete: read-only data audit, data dictionary and architecture.
@@ -88,11 +119,9 @@ See:
 需要安装：Python 3.12、[uv](https://docs.astral.sh/uv/)、Node.js 22+ 与 npm。Docker 仅用于
 容器化预览，不是本地开发的必需依赖。
 
-进入项目根目录，并确认只读业务快照存在：
-
 ```bash
-cd /Users/somnus/proj/EcomInsight
-ls luopan-server-snapshot-20260727/current/state/luopan.db
+git clone https://github.com/somnus0917/ecominsight.git
+cd ecominsight
 ```
 
 安装 Python 依赖并创建本地配置：
@@ -146,7 +175,7 @@ uv run ecom-evaluate-reporting
 打开两个终端，第一个终端启动后端：
 
 ```bash
-cd /Users/somnus/proj/EcomInsight
+cd ecominsight
 uv run ecom-api
 ```
 
@@ -159,7 +188,7 @@ curl http://127.0.0.1:8000/api/health
 第二个终端安装并启动前端：
 
 ```bash
-cd /Users/somnus/proj/EcomInsight
+cd ecominsight
 npm --prefix frontend ci
 npm --prefix frontend run dev
 ```

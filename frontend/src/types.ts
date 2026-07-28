@@ -5,6 +5,7 @@ export interface HealthResponse {
   database_exists: boolean;
   feedback_store_ready: boolean;
   data_updated_at: string | null;
+  data_mode: "real" | "demo";
 }
 
 export interface KpiValue {

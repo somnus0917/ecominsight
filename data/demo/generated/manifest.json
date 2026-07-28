@@ -41,16 +41,10 @@
     "failed": 0
   },
   "reference_profile": {
-    "used": true,
-    "source": "local_sanitized_phase2_warehouse",
+    "used": false,
+    "source": "safe_ecommerce_defaults",
     "usage": "bounded non-identifying rate medians only",
-    "fields": [
-      "exposure_click_rate_users",
-      "click_conversion_rate_users",
-      "refund_rate_by_pay_time",
-      "ad_spend_to_paid_amount_ratio",
-      "merchant_experience_score"
-    ],
+    "fields": [],
     "real_amounts_copied": false,
     "real_entity_ids_copied": false
   },

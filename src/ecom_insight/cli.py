@@ -11,6 +11,7 @@ from ecom_insight.anomaly import AnomalyRunner
 from ecom_insight.attribution import AttributionRunner
 from ecom_insight.config import AppSettings
 from ecom_insight.demo import DemoDataGenerator
+from ecom_insight.demo.pipeline import DemoPipeline
 from ecom_insight.evaluation import (
     AnomalyEvaluator,
     AttributionEvaluator,
@@ -20,6 +21,7 @@ from ecom_insight.logging import configure_logging
 from ecom_insight.metrics import AnalysisRunner
 from ecom_insight.reporting.runner import ReportRunner
 from ecom_insight.retrieval import KnowledgeBuilder
+from ecom_insight.security.public_scan import scan_repository
 from ecom_insight.warehouse import WarehouseBuilder
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
@@ -340,6 +342,50 @@ def serve_api_command(
     )
 
 
+@app.command("audit-public")
+def audit_public_command(
+    repository_root: Annotated[
+        Path | None,
+        typer.Option(help="Repository root to scan; defaults to current directory"),
+    ] = None,
+) -> None:
+    configure_logging()
+    root = repository_root.resolve() if repository_root else Path.cwd().resolve()
+    findings = scan_repository(root)
+    if not findings:
+        typer.echo("No sensitive content found in tracked files.")
+        return
+    typer.echo(f"Found {len(findings)} potential issue(s):\n")
+    for finding in findings:
+        typer.echo(f"  {finding}")
+    raise typer.Exit(code=1)
+
+
+@app.command("demo")
+def demo_command(
+    config: Annotated[Path, typer.Option(help="Demo scenario config")] = Path("configs/demo_scenarios.yaml"),
+    output_root: Annotated[Path, typer.Option(help="Demo output directory")] = Path("data/demo/processed"),
+    metrics: Annotated[Path, typer.Option(help="Metric registry YAML")] = Path("configs/metrics.yaml"),
+    rules: Annotated[Path, typer.Option(help="Attribution rules YAML")] = Path("configs/attribution_rules.yaml"),
+) -> None:
+    configure_logging()
+    result = DemoPipeline(
+        config_path=config,
+        output_root=output_root,
+        metrics_config=metrics,
+        rules_config=rules,
+    ).run()
+    if result.success:
+        typer.echo(f"Demo database: {result.database_path}")
+        typer.echo(f"Summary: {result.summary_path}")
+        typer.echo(f"Steps: {', '.join(result.steps_completed)}")
+    else:
+        typer.echo(f"Demo build failed. Steps completed: {', '.join(result.steps_completed)}")
+        for err in result.errors:
+            typer.echo(f"  Error: {err}")
+        raise typer.Exit(code=1)
+
+
 def build_warehouse_entrypoint() -> None:
     app(args=["build-warehouse", *sys.argv[1:]], prog_name="ecom-build-warehouse")
 
@@ -409,6 +455,20 @@ def serve_api_entrypoint() -> None:
     app(
         args=["serve-api", *sys.argv[1:]],
         prog_name="ecom-api",
+    )
+
+
+def audit_public_entrypoint() -> None:
+    app(
+        args=["audit-public", *sys.argv[1:]],
+        prog_name="ecom-audit-public",
+    )
+
+
+def demo_entrypoint() -> None:
+    app(
+        args=["demo", *sys.argv[1:]],
+        prog_name="ecom-demo",
     )
 
 

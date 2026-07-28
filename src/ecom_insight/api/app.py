@@ -48,6 +48,7 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
             database_exists=exists,
             feedback_store_ready=feedback_store.ready(),
             data_updated_at=updated,
+            data_mode=active_settings.data_mode,
         )
 
     @app.get("/api/overview", response_model=OverviewResponse)

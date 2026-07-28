@@ -41,6 +41,8 @@ ecom-build-knowledge = "ecom_insight.cli:build_knowledge_entrypoint"
 ecom-generate-reports = "ecom_insight.cli:generate_reports_entrypoint"
 ecom-evaluate-reporting = "ecom_insight.cli:evaluate_reporting_entrypoint"
 ecom-api = "ecom_insight.cli:serve_api_entrypoint"
+ecom-audit-public = "ecom_insight.cli:audit_public_entrypoint"
+ecom-demo = "ecom_insight.cli:demo_entrypoint"
 
 [build-system]
 requires = ["hatchling"]

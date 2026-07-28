@@ -30,7 +30,7 @@ def test_traffic_rule_uses_stable_rates_as_support() -> None:
 
     traffic = next(candidate for candidate in candidates if candidate.rule_id == "R001")
     assert traffic.status == "supported_inference"
-    assert traffic.confidence == 1.0
+    assert traffic.evidence_score == 1.0
     assert traffic.counter_evidence == []
 
 
@@ -45,7 +45,7 @@ def test_conversion_rule_preserves_inventory_gap() -> None:
     )
 
     conversion = next(candidate for candidate in candidates if candidate.rule_id == "R003")
-    assert conversion.confidence == 1.0
+    assert conversion.evidence_score == 1.0
     assert "商品-SKU桥接" in conversion.missing_information[0]
 
 

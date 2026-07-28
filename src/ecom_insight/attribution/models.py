@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 EvidenceStatus = Literal[
     "confirmed_fact",
@@ -54,7 +54,7 @@ class MetricDecomposition(AttributionModel):
     limitations: list[str] = Field(default_factory=list)
 
 
-class ConfidenceBreakdown(AttributionModel):
+class EvidenceScoreBreakdown(AttributionModel):
     evidence_completeness: float = Field(ge=0, le=1)
     source_reliability: float = Field(ge=0, le=1)
     directional_consistency: float = Field(ge=0, le=1)
@@ -78,12 +78,30 @@ class AttributionCandidate(AttributionModel):
     cause_code: str
     cause: str
     status: EvidenceStatus
-    confidence: float = Field(ge=0, le=1)
-    confidence_breakdown: ConfidenceBreakdown
+    evidence_score: float = Field(
+        ge=0,
+        le=1,
+        validation_alias=AliasChoices("evidence_score", "confidence"),
+    )
+    evidence_score_breakdown: EvidenceScoreBreakdown = Field(
+        validation_alias=AliasChoices(
+            "evidence_score_breakdown", "confidence_breakdown"
+        )
+    )
     supporting_evidence: list[EvidenceItem] = Field(default_factory=list)
     counter_evidence: list[EvidenceItem] = Field(default_factory=list)
     missing_information: list[str] = Field(default_factory=list)
     explanation: str
+
+    @property
+    def confidence(self) -> float:
+        """Compatibility accessor while persisted consumers migrate to evidence_score."""
+        return self.evidence_score
+
+    @property
+    def confidence_breakdown(self) -> EvidenceScoreBreakdown:
+        """Compatibility accessor for pre-Phase-C readers."""
+        return self.evidence_score_breakdown
 
 
 class AttributionResult(AttributionModel):
@@ -100,3 +118,7 @@ class AttributionResult(AttributionModel):
     context_evidence: list[EvidenceItem] = Field(default_factory=list)
     missing_information: list[str] = Field(default_factory=list)
     data_origin: Literal["real", "demo"]
+
+
+# Kept as an import-compatible alias until the persisted warehouse and API are migrated.
+ConfidenceBreakdown = EvidenceScoreBreakdown

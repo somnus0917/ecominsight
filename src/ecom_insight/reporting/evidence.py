@@ -144,8 +144,8 @@ class AttributionEvidenceService:
                     cause_code=str(row[8]),
                     cause=str(row[9]),
                     status=str(row[10]),  # type: ignore[arg-type]
-                    confidence=float(row[11]),
-                    confidence_breakdown=ConfidenceBreakdown.model_validate_json(
+                    evidence_score=float(row[11]),
+                    evidence_score_breakdown=ConfidenceBreakdown.model_validate_json(
                         str(row[12])
                     ),
                     supporting_evidence=evidence_by_rule_role.get(
@@ -215,4 +215,3 @@ class AttributionEvidenceService:
             if item.change_rate is not None and abs(item.change_rate) >= 0.15
         )
         return f"异常指标 {target_metric} {cause_terms} 变化证据 {evidence_terms}"
-

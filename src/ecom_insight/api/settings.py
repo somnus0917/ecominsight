@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -16,6 +17,7 @@ class ApiSettings(BaseSettings):
 
     database_path: Path = Path("data/processed/ecom_insight.duckdb")
     feedback_database_path: Path = Path("data/processed/feedback.sqlite")
+    data_mode: Literal["real", "demo"] = "demo"
     allowed_origins: list[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",

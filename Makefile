@@ -1,4 +1,4 @@
-.PHONY: sync lint format typecheck test check audit warehouse analysis anomaly attribution knowledge reports evaluate evaluate-attribution evaluate-reporting demo api frontend-install frontend-check frontend-build docker-up docker-down
+.PHONY: sync lint format typecheck test check audit warehouse analysis anomaly attribution knowledge reports evaluate evaluate-attribution evaluate-reporting demo api frontend-install frontend-check frontend-build public-audit demo-check docker-up docker-down
 
 sync:
 	uv sync --all-groups
@@ -49,10 +49,17 @@ evaluate-reporting:
 	uv run ecom-evaluate-reporting
 
 demo:
-	uv run ecom-generate-demo-data
+	uv run ecom-demo
 
 api:
 	uv run ecom-api
+
+public-audit:
+	uv run ecom-audit-public
+
+demo-check:
+	uv run ecom-demo
+	uv run pytest tests/integration/test_demo_pipeline.py
 
 frontend-install:
 	npm --prefix frontend ci
