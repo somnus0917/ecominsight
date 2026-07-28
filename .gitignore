@@ -17,6 +17,7 @@ build/
 .env
 .env.*
 !.env.example
+!.env.demo
 data/.secrets/
 **/cookies*
 **/session*
@@ -31,6 +32,7 @@ data/.secrets/
 data/raw/
 data/processed/
 data/artifacts/
+data/demo/processed/
 *.db
 *.sqlite
 *.duckdb

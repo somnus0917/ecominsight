@@ -3,7 +3,7 @@
   "generated_on": "2026-07-27",
   "phase": "phase_0_read_only_audit",
   "audit_scope": {
-    "requested_source": "/Users/somnus/Documents/luopanhacker/downloads/luopan-server-snapshot-20260727/current",
+    "requested_source": "<LOCAL_SNAPSHOT_ROOT>",
     "requested_source_exists": false,
     "audited_source": "./luopan-server-snapshot-20260727/current",
     "authoritative_database": "state/luopan.db",
@@ -18,9 +18,7 @@
       "**/*cookie*",
       "**/*token*",
       "**/*credential*",
-      "state/luopan.db:sessions",
-      "state/luopan.db:users",
-      "state/luopan.db:app_kv.value_json"
+      "authentication_data:hard_excluded"
     ]
   },
   "file_inventory": [
@@ -126,16 +124,6 @@
     "luopan.db": {
       "size_bytes": 1994752,
       "tables": [
-        {
-          "name": "app_kv",
-          "rows": 4,
-          "columns": [
-            "key TEXT PRIMARY KEY",
-            "value_json TEXT NOT NULL",
-            "updated_at TEXT NOT NULL"
-          ],
-          "classification": "operational_metadata_excluded"
-        },
         {
           "name": "channel_daily",
           "rows": 23,
@@ -249,27 +237,10 @@
           "classification": "operational_import_metadata_not_profiled"
         },
         {
-          "name": "sessions",
-          "rows": 3,
-          "columns": [
-            "token_hash TEXT PRIMARY KEY",
-            "username TEXT",
-            "created_at INTEGER",
-            "expires_at INTEGER"
-          ],
-          "classification": "authentication_data_hard_excluded"
-        },
-        {
-          "name": "users",
-          "rows": 2,
-          "columns": [
-            "username TEXT PRIMARY KEY",
-            "password_hash TEXT",
-            "role TEXT",
-            "created_at TEXT",
-            "password_changed_at TEXT NULL"
-          ],
-          "classification": "authentication_data_hard_excluded"
+          "category": "authentication_data",
+          "status": "hard_excluded",
+          "table_count": 3,
+          "content_read": false
         }
       ]
     },
@@ -570,37 +541,7 @@
       ],
       "distinct_order_ids": 612,
       "distinct_item_order_ids": 612,
-      "exact_sanitized_duplicates": 0,
-      "pii_presence_counts": {
-        "receiver_name_nonempty": 612,
-        "receiver_phone_nonempty": 612,
-        "receiver_address_nonempty": 612
-      },
-      "commercial_sensitive_presence_counts": {
-        "merchant_sku_code": 612,
-        "product_name": 612,
-        "sku_spec": 612,
-        "author": 172
-      },
-      "raw_columns": [
-        "order_no",
-        "order_time",
-        "header_extra",
-        "product_name",
-        "sku_spec",
-        "merchant_sku_code",
-        "author",
-        "item_order_id",
-        "product_tags",
-        "price_quantity",
-        "aftersale_status",
-        "order_status",
-        "merchant_income",
-        "receiver_name",
-        "receiver_phone",
-        "receiver_address",
-        "operations"
-      ]
+      "exact_sanitized_duplicates": 0
     },
     "external_orders": {
       "authoritative_source": "output/external_orders/orders_daily.json",
@@ -738,7 +679,7 @@
     {
       "id": "DQ-001",
       "severity": "critical",
-      "finding": "Order exports contain receiver name, phone and detailed address on all 612 authoritative rows.",
+      "finding": "Order exports contain direct personal information, phone and detailed address on all 612 authoritative rows.",
       "risk": "Direct personal information could leak into DuckDB, logs, fixtures, Git, UI or an external model.",
       "required_control": "Streaming sanitization before persistence; delete name/phone/address and HMAC order identifiers with an external salt."
     },
