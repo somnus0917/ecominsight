@@ -18,18 +18,15 @@ uv sync --all-groups
 uv run ecom-demo
 ```
 
-Start the API:
+Build and preview everything with one command (it creates only ignored local demo outputs):
 
 ```bash
-uv run ecom-api
+make preview-demo
 ```
 
-In another terminal, start the frontend:
-
-```bash
-npm --prefix frontend ci
-npm --prefix frontend run dev
-```
+The command builds the synthetic warehouse, starts the API and frontend, then prints the local
+URLs. Press `Ctrl+C` to stop both services. If you prefer separate terminals, start the API with
+`uv run ecom-api` and the frontend with `npm --prefix frontend run dev`.
 
 Open `http://127.0.0.1:5173` — the UI displays a **Synthetic Demo** badge confirming
 no real business data is shown. API docs at `http://127.0.0.1:8000/docs`.

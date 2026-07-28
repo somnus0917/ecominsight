@@ -1,4 +1,4 @@
-.PHONY: sync lint format typecheck test check audit warehouse analysis anomaly attribution knowledge reports evaluate evaluate-attribution evaluate-reporting demo api frontend-install frontend-check frontend-build public-audit demo-check docker-up docker-down
+.PHONY: sync lint format typecheck test check audit warehouse analysis anomaly attribution knowledge reports evaluate evaluate-attribution evaluate-reporting demo api preview-demo frontend-install frontend-check frontend-build public-audit demo-check docker-up docker-down
 
 sync:
 	uv sync --all-groups
@@ -53,6 +53,9 @@ demo:
 
 api:
 	uv run ecom-api
+
+preview-demo:
+	bash scripts/preview_demo.sh
 
 public-audit:
 	uv run ecom-audit-public

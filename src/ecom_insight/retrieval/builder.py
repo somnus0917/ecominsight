@@ -8,9 +8,8 @@ from typing import Any
 
 import duckdb
 import structlog
-import yaml
-from pydantic import BaseModel, ConfigDict, Field
 
+from ecom_insight.attribution.config import AttributionRulesConfig
 from ecom_insight.metrics import MetricRegistry
 from ecom_insight.retrieval.embedding import (
     EmbeddingProvider,
@@ -33,26 +32,6 @@ SCENARIO_CAUSE_CODES = {
     "settlement_drop": "settlement_adjustment_decline",
     "overstock": "overstock",
 }
-
-
-class RuleKnowledge(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    rule_id: str
-    cause_code: str
-    cause: str
-    applies_to: list[str]
-    preconditions: list[str]
-    supporting_evidence: list[str]
-    counter_evidence: list[str]
-    explanation_template: str
-
-
-class RuleKnowledgeConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    version: int = Field(ge=1)
-    rules: list[RuleKnowledge]
 
 
 @dataclass(frozen=True, slots=True)
@@ -165,8 +144,7 @@ class KnowledgeBuilder:
         ]
 
     def _rule_documents(self) -> list[KnowledgeDocument]:
-        payload = yaml.safe_load(self.rule_config_path.read_text(encoding="utf-8"))
-        config = RuleKnowledgeConfig.model_validate(payload)
+        config = AttributionRulesConfig.load(self.rule_config_path)
         return [
             KnowledgeDocument(
                 document_id=f"rule:{rule.rule_id}",
