@@ -146,7 +146,7 @@ export function AnomalyDetailPage({ attributionId }: { attributionId: string }) 
               { key: "rule_id", label: "规则" },
               { key: "cause", label: "候选解释" },
               { key: "evidence_status", label: "状态", render: (value) => <StatusBadge value={value} /> },
-              { key: "confidence", label: "置信度", align: "right", render: percent },
+              { key: "evidence_score", label: "证据评分", align: "right", render: percent },
             ]}
           />
         </Panel>

@@ -75,15 +75,15 @@ class AttributionEvidenceService:
                     cause_code,
                     cause,
                     evidence_status,
-                    confidence,
-                    confidence_breakdown_json,
+                    evidence_score,
+                    evidence_score_breakdown_json,
                     explanation,
                     missing_information_json,
                     decomposition_json,
                     data_origin
                 FROM fact_attribution
                 WHERE attribution_id = ?
-                ORDER BY confidence DESC, rule_id
+                ORDER BY evidence_score DESC, rule_id
                 """,
                 [attribution_id],
             ).fetchall()

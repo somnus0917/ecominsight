@@ -70,6 +70,7 @@ flowchart LR
 ### Zone 0：原始只读区
 
 - 路径通过环境变量或本机配置注入；异常检测参数由 `configs/anomaly.yaml` 校验，归因变化阈值与证据评分参数由 `configs/attribution_rules.yaml` 校验；
+- 规则归因的可执行评分统一命名为 `evidence_score`，用于 DuckDB、API 和前端展示；大模型报告内的 `confidence` 仅描述报告候选解释的表达置信度，二者不混用；
 - SQLite 用 URI `mode=ro`；
 - 启动时验证源文件 inode/mtime，仅用于检测意外修改；
 - 禁止递归扫描用户目录；

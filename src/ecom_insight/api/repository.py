@@ -365,7 +365,7 @@ class AnalyticsRepository:
                     SELECT *,
                         row_number() OVER (
                             PARTITION BY attribution_id
-                            ORDER BY confidence DESC, rule_id
+                            ORDER BY evidence_score DESC, rule_id
                         ) AS candidate_rank
                     FROM fact_attribution
                 )
@@ -382,7 +382,7 @@ class AnalyticsRepository:
                 SELECT
                     attribution_id, entity_id, date, target_metric,
                     anomaly_score, severity, rule_id, cause, evidence_status,
-                    confidence, detector_names_json
+                    evidence_score, detector_names_json
                 FROM ranked
                 WHERE {where}
                 ORDER BY date DESC, anomaly_score DESC
@@ -410,11 +410,11 @@ class AnalyticsRepository:
                 SELECT
                     attribution_id, entity_id, date, target_metric,
                     anomaly_score, severity, rule_id, cause_code, cause,
-                    evidence_status, confidence, explanation,
+                    evidence_status, evidence_score, explanation,
                     missing_information_json, decomposition_json
                 FROM fact_attribution
                 WHERE attribution_id = ?
-                ORDER BY confidence DESC, rule_id
+                ORDER BY evidence_score DESC, rule_id
                 """,
                 [attribution_id],
             )

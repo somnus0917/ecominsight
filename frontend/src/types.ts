@@ -65,4 +65,3 @@ export interface AnomalyDetail {
   validation: JsonRecord | null;
   feedback: JsonRecord[];
 }
-

@@ -32,7 +32,7 @@ def _create_api_database(path: Path) -> str:
                 attribution_id VARCHAR, entity_id VARCHAR, date DATE,
                 target_metric VARCHAR, anomaly_score DOUBLE, severity VARCHAR,
                 rule_id VARCHAR, cause_code VARCHAR, cause VARCHAR,
-                evidence_status VARCHAR, confidence DOUBLE,
+                evidence_status VARCHAR, evidence_score DOUBLE,
                 detector_names_json JSON
             )
             """
@@ -76,6 +76,10 @@ def test_health_overview_and_feedback(tmp_path: Path) -> None:
     assert overview.status_code == 200
     assert overview.json()["kpis"][0]["value"] == 100
 
+    anomalies = client.get("/api/anomalies")
+    assert anomalies.status_code == 200
+    assert anomalies.json()["items"][0]["evidence_score"] == 0.9
+
     feedback = client.post(
         f"/api/anomalies/{attribution_id}/feedback",
         json={
@@ -110,4 +114,3 @@ def test_feedback_rejects_sensitive_patterns(tmp_path: Path) -> None:
     )
 
     assert response.status_code == 422
-
