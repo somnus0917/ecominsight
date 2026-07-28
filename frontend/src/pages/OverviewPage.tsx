@@ -10,9 +10,11 @@ import { Link } from "../router";
 
 export function OverviewPage() {
   const query = useQuery({ queryKey: ["overview"], queryFn: api.overview });
+  const health = useQuery({ queryKey: ["health"], queryFn: api.health });
   if (query.isLoading) return <LoadingState />;
   if (query.error) return <ErrorState error={query.error} retry={() => query.refetch()} />;
   const data = query.data!;
+  const isDemo = health.data?.data_mode === "demo";
   const trendOption: EChartsOption = {
     animationDuration: 450,
     tooltip: { trigger: "axis" },
@@ -53,7 +55,11 @@ export function OverviewPage() {
       <PageHeader
         eyebrow="Operations / 经营脉搏"
         title="跨平台经营总览"
-        description="真实仓库聚合结果。金额、异常和结算均由程序计算，不经过大模型重算。"
+        description={
+          isDemo
+            ? "合成演示数据的聚合结果。金额、异常和结算均由程序计算，不经过大模型重算。"
+            : "本地分析仓库的聚合结果。金额、异常和结算均由程序计算，不经过大模型重算。"
+        }
         actions={
           <Link className="button-primary" to="/anomalies">
             查看异常中心 <ArrowUpRight size={15} />
@@ -85,7 +91,7 @@ export function OverviewPage() {
             </div>
             <div className="note-row">
               <span className="note-index">02</span>
-              <p>自动归因仅为候选推断；人工确认前不会进入真实案例库。</p>
+              <p>自动归因仅为候选推断；人工确认前不会进入审核案例库。</p>
             </div>
             <div className="note-row warning">
               <AlertTriangle size={17} />
